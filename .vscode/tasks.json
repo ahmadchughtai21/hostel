@@ -1,0 +1,45 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Start Django Project",
+			"type": "shell",
+			"command": "django-admin startproject hostel_platform . && python manage.py startapp hostels",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Start Django Project",
+			"type": "shell",
+			"command": "/home/ahmad/repos/hostel/.venv/bin/python -m django startproject hostel_platform . && /home/ahmad/repos/hostel/.venv/bin/python manage.py startapp hostels",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Start Django Project",
+			"type": "shell",
+			"command": "/home/ahmad/repos/hostel/.venv/bin/python -m django startproject hostel_platform . && /home/ahmad/repos/hostel/.venv/bin/python manage.py startapp hostels",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Django Development Server",
+			"type": "shell",
+			"command": "/home/ahmad/repos/hostel/.venv/bin/python",
+			"args": [
+				"manage.py",
+				"runserver",
+				"0.0.0.0:8000"
+			],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		}
+	]
+}

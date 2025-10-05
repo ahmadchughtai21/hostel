@@ -1,0 +1,337 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin - Analytics{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'hostels:admin_dashboard' %}" class="text-gray-600 hover:text-gray-800">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                    </a>
+                    <h1 class="text-2xl font-bold text-gray-900">Analytics & Reports</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="window.print()" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-print mr-2"></i>Print Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Key Metrics Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Hostel Statistics -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total Hostels</p>
+                        <p class="text-3xl font-bold text-gray-900">{{ hostel_stats.total }}</p>
+                        <div class="flex items-center mt-2">
+                            <span class="text-sm text-green-600 font-medium">
+                                +{{ hostel_stats.new_this_month }} this month
+                            </span>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-blue-100 rounded-full">
+                        <i class="fas fa-building text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+
+                <div class="mt-4 space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Verified:</span>
+                        <span class="font-medium">{{ hostel_stats.verified }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Pending:</span>
+                        <span class="font-medium text-yellow-600">{{ hostel_stats.pending }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Featured:</span>
+                        <span class="font-medium text-purple-600">{{ hostel_stats.featured }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Statistics -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total Users</p>
+                        <p class="text-3xl font-bold text-gray-900">{{ user_stats.total }}</p>
+                        <div class="flex items-center mt-2">
+                            <span class="text-sm text-green-600 font-medium">
+                                +{{ user_stats.new_this_month }} this month
+                            </span>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-green-100 rounded-full">
+                        <i class="fas fa-users text-green-600 text-xl"></i>
+                    </div>
+                </div>
+
+                <div class="mt-4 space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Students:</span>
+                        <span class="font-medium">{{ user_stats.students }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Owners:</span>
+                        <span class="font-medium text-purple-600">{{ user_stats.owners }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Admins:</span>
+                        <span class="font-medium text-red-600">{{ user_stats.admins }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Reveals -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Contact Reveals</p>
+                        <p class="text-3xl font-bold text-gray-900">{{ contact_stats.total }}</p>
+                        <div class="flex items-center mt-2">
+                            <span class="text-sm text-green-600 font-medium">
+                                +{{ contact_stats.this_month }} this month
+                            </span>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-yellow-100 rounded-full">
+                        <i class="fas fa-eye text-yellow-600 text-xl"></i>
+                    </div>
+                </div>
+
+                <div class="mt-4 space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">This Week:</span>
+                        <span class="font-medium">{{ contact_stats.this_week }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Avg/Day:</span>
+                        <span class="font-medium">{{ contact_stats.this_week|floatformat:1 }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Revenue Estimation -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Est. Revenue</p>
+                        <p class="text-3xl font-bold text-gray-900">₨{{ hostel_stats.estimated_revenue|floatformat:0 }}</p>
+                        <div class="flex items-center mt-2">
+                            <span class="text-sm text-gray-600">
+                                Monthly subscriptions
+                            </span>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-purple-100 rounded-full">
+                        <i class="fas fa-rupee-sign text-purple-600 text-xl"></i>
+                    </div>
+                </div>
+
+                <div class="mt-4 space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Per Hostel:</span>
+                        <span class="font-medium">₨8,999/month</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Active:</span>
+                        <span class="font-medium text-green-600">{{ hostel_stats.verified }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts and Trends -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- Monthly Registration Trend -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">User Registration Trend</h3>
+                <div class="h-64 flex items-end justify-between space-x-2">
+                    {% for month_data in monthly_registrations %}
+                    <div class="flex flex-col items-center">
+                        <div class="bg-blue-500 rounded-t" style="height: {{ month_data.height }}px; min-height: 10px; width: 40px;"></div>
+                        <span class="text-xs text-gray-600 mt-2 transform -rotate-45">{{ month_data.month }}</span>
+                        <span class="text-xs font-medium">{{ month_data.count }}</span>
+                    </div>
+                    {% empty %}
+                    <div class="flex items-center justify-center h-64 w-full text-gray-500">
+                        <div class="text-center">
+                            <i class="fas fa-chart-bar text-4xl mb-2"></i>
+                            <p>No registration data available</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Platform Health -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Platform Health</h3>
+                <div class="space-y-4">
+                    <!-- Hostel Verification Rate -->
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-gray-600">Hostel Verification Rate</span>
+                            <span class="font-medium">
+                                {% widthratio hostel_stats.verified hostel_stats.total 100 %}%
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-green-600 h-2 rounded-full" style="width: {% widthratio hostel_stats.verified hostel_stats.total 100 %}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- User Engagement -->
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-gray-600">User Engagement</span>
+                            <span class="font-medium">
+                                {% if user_stats.total > 0 %}
+                                    {% widthratio contact_stats.total user_stats.total 100 %}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full"
+                                 style="width: {% if user_stats.total > 0 %}{% widthratio contact_stats.total user_stats.total 100 %}{% else %}0{% endif %}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Platform Growth -->
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-gray-600">Monthly Growth</span>
+                            <span class="font-medium">
+                                {% if hostel_stats.total > 0 %}
+                                    {% widthratio hostel_stats.new_this_month hostel_stats.total 100 %}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-purple-600 h-2 rounded-full"
+                                 style="width: {% if hostel_stats.total > 0 %}{% widthratio hostel_stats.new_this_month hostel_stats.total 100 %}{% else %}0{% endif %}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Platform Activity</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Recent Hostels -->
+                <div>
+                    <h4 class="font-medium text-gray-700 mb-3">Recently Added Hostels</h4>
+                    <div class="space-y-3">
+                        <!-- This would be populated with actual recent hostel data -->
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">No recent hostels</p>
+                                <p class="text-xs text-gray-500">Check back later for updates</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Status -->
+                <div>
+                    <h4 class="font-medium text-gray-700 mb-3">System Status</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Database</span>
+                            <span class="flex items-center text-green-600">
+                                <i class="fas fa-circle text-xs mr-1"></i>
+                                Online
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Image Storage</span>
+                            <span class="flex items-center text-green-600">
+                                <i class="fas fa-circle text-xs mr-1"></i>
+                                Online
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Email Service</span>
+                            <span class="flex items-center text-green-600">
+                                <i class="fas fa-circle text-xs mr-1"></i>
+                                Online
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Search Engine</span>
+                            <span class="flex items-center text-green-600">
+                                <i class="fas fa-circle text-xs mr-1"></i>
+                                Online
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <a href="{% url 'hostels:admin_hostels' %}?status=pending"
+                   class="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-clock text-yellow-600 text-2xl mb-2"></i>
+                    <span class="text-sm font-medium text-gray-900">Pending Hostels</span>
+                    <span class="text-xs text-gray-500">{{ hostel_stats.pending }} waiting</span>
+                </a>
+
+                <a href="{% url 'hostels:admin_users' %}?role=owner"
+                   class="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-users text-purple-600 text-2xl mb-2"></i>
+                    <span class="text-sm font-medium text-gray-900">Manage Owners</span>
+                    <span class="text-xs text-gray-500">{{ user_stats.owners }} active</span>
+                </a>
+
+                <a href="{% url 'hostels:export_data' %}?type=hostels"
+                   class="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-download text-blue-600 text-2xl mb-2"></i>
+                    <span class="text-sm font-medium text-gray-900">Export Data</span>
+                    <span class="text-xs text-gray-500">Download reports</span>
+                </a>
+
+                <a href="{% url 'hostels:admin_hostels' %}?status=featured"
+                   class="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-star text-yellow-500 text-2xl mb-2"></i>
+                    <span class="text-sm font-medium text-gray-900">Featured Hostels</span>
+                    <span class="text-xs text-gray-500">{{ hostel_stats.featured }} featured</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
+</style>
+
+{% endblock %}

@@ -1,0 +1,462 @@
+{% extends 'base.html' %}
+
+{% block title %}Add New Hostel - HostelHub{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <nav class="flex mb-4" aria-label="Breadcrumb">
+            <ol class="flex items-center space-x-4">
+                <li>
+                    <a href="{% url 'hostels:owner_dashboard' %}" class="text-gray-400 hover:text-gray-600">
+                        Owner Dashboard
+                    </a>
+                </li>
+                <li>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </li>
+                <li class="text-gray-900">Add New Hostel</li>
+            </ol>
+        </nav>
+
+        <h1 class="text-3xl font-bold text-gray-900">Add New Hostel</h1>
+        <p class="text-gray-600">Create a detailed listing for your hostel to attract students and travelers</p>
+
+        <!-- Payment Information Notice -->
+        <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-info-circle text-blue-400"></i>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-blue-800">Subscription Required</h3>
+                    <div class="mt-2 text-sm text-blue-700">
+                        <p>To list your hostel on HostelHub, a monthly subscription fee of <strong>₨8,999</strong> is required. After you submit your listing:</p>
+                        <ul class="list-disc list-inside mt-2 space-y-1">
+                            <li>Our admin team will review your submission</li>
+                            <li>We'll contact you via the provided contact details with payment instructions</li>
+                            <li>Your hostel will be verified and activated after successful payment</li>
+                            <li>Payment is handled externally for your security</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Hostel Name -->
+            <div>
+                <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    Hostel Name *
+                </label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                    <div class="text-red-600 text-sm mt-1">{{ form.name.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Address -->
+            <div>
+                <label for="{{ form.address.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    Complete Address *
+                </label>
+                {{ form.address }}
+                <p class="text-gray-500 text-sm mt-1">Include street address, city, and landmarks for easy location</p>
+                {% if form.address.errors %}
+                    <div class="text-red-600 text-sm mt-1">{{ form.address.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Google Location Link -->
+            <div>
+                <label for="{{ form.google_location_link.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    Google Maps Location Link (Optional)
+                </label>
+                {{ form.google_location_link }}
+                <p class="text-gray-500 text-sm mt-1">Share your Google Maps location link for precise navigation</p>
+                {% if form.google_location_link.errors %}
+                    <div class="text-red-600 text-sm mt-1">{{ form.google_location_link.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Landmark Information -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="md:col-span-2">
+                    <label for="{{ form.nearby_landmark.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Nearby Landmark (Optional)
+                    </label>
+                    {{ form.nearby_landmark }}
+                    <p class="text-gray-500 text-sm mt-1">Name of nearby university, college, school, or workplace</p>
+                    {% if form.nearby_landmark.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.nearby_landmark.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.landmark_distance.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Distance (km)
+                    </label>
+                    {{ form.landmark_distance }}
+                    <p class="text-gray-500 text-sm mt-1">Distance from landmark</p>
+                    {% if form.landmark_distance.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.landmark_distance.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    Description *
+                </label>
+                {{ form.description }}
+                <p class="text-gray-500 text-sm mt-1">Describe your hostel, its atmosphere, rules, and what makes it special</p>
+                {% if form.description.errors %}
+                    <div class="text-red-600 text-sm mt-1">{{ form.description.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Contact Information -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="{{ form.contact_email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Contact Email *
+                    </label>
+                    {{ form.contact_email }}
+                    {% if form.contact_email.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.contact_email.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.contact_phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Contact Phone *
+                    </label>
+                    {{ form.contact_phone }}
+                    {% if form.contact_phone.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.contact_phone.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- WhatsApp Number -->
+            <div>
+                <label for="{{ form.whatsapp_number.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    WhatsApp Number (Optional)
+                </label>
+                {{ form.whatsapp_number }}
+                <p class="text-gray-500 text-sm mt-1">Include WhatsApp for easier communication with students</p>
+                {% if form.whatsapp_number.errors %}
+                    <div class="text-red-600 text-sm mt-1">{{ form.whatsapp_number.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Facilities Section -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-3">
+                    Available Facilities
+                </label>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+                    {% for facility in form.facilities %}
+                        <label class="flex items-center p-2 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                            {{ facility.tag }}
+                            <span class="ml-2 text-sm">{{ facility.choice_label }}</span>
+                        </label>
+                    {% endfor %}
+                </div>
+                {% if form.facilities.errors %}
+                    <div class="text-red-600 text-sm mt-1">{{ form.facilities.errors.0 }}</div>
+                {% endif %}
+
+                <!-- Custom Facility -->
+                <div class="mt-4">
+                    <label for="{{ form.new_facility.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Add Custom Facility (Optional)
+                    </label>
+                    {{ form.new_facility }}
+                    <p class="text-gray-500 text-sm mt-1">Add a facility not listed above</p>
+                    {% if form.new_facility.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.new_facility.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Room Types Section -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-3">Room Types & Pricing</h3>
+                {{ room_formset.management_form }}
+                <div id="room-formset" class="space-y-4">
+                    {% for room_form in room_formset %}
+                        <div class="room-form p-4 border border-gray-200 rounded-lg">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Room Type</label>
+                                    {{ room_form.type }}
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Price (PKR/month)</label>
+                                    {{ room_form.price }}
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Available Rooms</label>
+                                    {{ room_form.available_rooms }}
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Description (Optional)</label>
+                                {{ room_form.description }}
+                            </div>
+                            {% if room_formset.can_delete %}
+                                <div class="mt-2">
+                                    {{ room_form.DELETE }}
+                                    <label class="text-sm text-red-600">Delete this room type</label>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <button type="button" onclick="addRoomForm()" class="mt-2 text-indigo-600 hover:text-indigo-800 text-sm">
+                    <i class="fas fa-plus mr-1"></i>Add Another Room Type
+                </button>
+            </div>
+
+            <!-- Images Section -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-3">Hostel Images</h3>
+                {{ image_formset.management_form }}
+                <div id="image-formset" class="space-y-4">
+                    {% for image_form in image_formset %}
+                        <div class="image-form p-4 border border-gray-200 rounded-lg">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Image</label>
+                                    {{ image_form.image }}
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Caption (Optional)</label>
+                                    {{ image_form.caption }}
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                {{ image_form.is_primary }}
+                                <label class="text-sm text-gray-700">Set as primary image</label>
+                            </div>
+                            {% if image_formset.can_delete %}
+                                <div class="mt-2">
+                                    {{ image_form.DELETE }}
+                                    <label class="text-sm text-red-600">Delete this image</label>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <button type="button" onclick="addImageForm()" class="mt-2 text-indigo-600 hover:text-indigo-800 text-sm">
+                    <i class="fas fa-plus mr-1"></i>Add Another Image
+                </button>
+            </div>
+
+            <!-- Instructions -->
+            <div class="bg-blue-50 p-4 rounded-lg">
+                <h3 class="font-semibold text-blue-900 mb-2">
+                    <i class="fas fa-info-circle mr-1"></i>What happens next?
+                </h3>
+                <ul class="text-blue-800 text-sm space-y-1">
+                    <li>• Your hostel will be submitted for verification</li>
+                    <li>• Admin will review and approve your listing within 24-48 hours</li>
+                    <li>• Once approved, it will be visible to students and travelers</li>
+                    <li>• You can edit details, add more photos, and manage room types anytime</li>
+                </ul>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex justify-end space-x-4">
+                <a
+                    href="{% url 'hostels:owner_dashboard' %}"
+                    class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                    Cancel
+                </a>
+                <button
+                    type="submit"
+                    class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                    <i class="fas fa-plus mr-2"></i>Create Hostel Listing
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Additional Information -->
+    <div class="mt-8 bg-gray-50 rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Tips for a Great Hostel Listing</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-600">
+            <div>
+                <h4 class="font-semibold text-gray-900 mb-2">Essential Information</h4>
+                <ul class="space-y-1">
+                    <li>• Use a clear, memorable hostel name</li>
+                    <li>• Provide exact address with landmarks</li>
+                    <li>• Write detailed, honest descriptions</li>
+                    <li>• Include multiple contact methods</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-semibold text-gray-900 mb-2">After Creating</h4>
+                <ul class="space-y-1">
+                    <li>• Add high-quality photos</li>
+                    <li>• Set up different room types and pricing</li>
+                    <li>• List all available facilities</li>
+                    <li>• Respond quickly to inquiries</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Style form inputs */
+    input[type="text"], input[type="email"], input[type="tel"], textarea, select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #374151;
+        background-color: #ffffff;
+    }
+
+    input[type="text"]:focus, input[type="email"]:focus, input[type="tel"]:focus, textarea:focus, select:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    textarea {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .room-form, .image-form {
+        position: relative;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #374151;
+        background-color: #ffffff;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+</style>
+
+<script>
+    let roomFormCount = {{ room_formset.total_form_count }};
+    let imageFormCount = {{ image_formset.total_form_count }};
+
+    function addRoomForm() {
+        const formsetContainer = document.getElementById('room-formset');
+        const newForm = document.createElement('div');
+        newForm.className = 'room-form p-4 border border-gray-200 rounded-lg';
+
+        newForm.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Room Type</label>
+                    <select name="form-${roomFormCount}-type" class="form-control">
+                        <option value="">Select Type</option>
+                        <option value="single">Single Room</option>
+                        <option value="double">Double Room</option>
+                        <option value="shared">Shared Room</option>
+                        <option value="dormitory">Dormitory</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Price (PKR/month)</label>
+                    <input type="number" name="form-${roomFormCount}-price" class="form-control" step="0.01" min="0">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Available Rooms</label>
+                    <input type="number" name="form-${roomFormCount}-available_rooms" class="form-control" min="1" value="1">
+                </div>
+            </div>
+            <div class="mt-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Description (Optional)</label>
+                <textarea name="form-${roomFormCount}-description" class="form-control" rows="2"></textarea>
+            </div>
+            <button type="button" onclick="this.parentElement.remove(); updateFormCount('room')" class="mt-2 text-red-600 hover:text-red-800 text-sm">
+                <i class="fas fa-trash mr-1"></i>Remove Room Type
+            </button>
+        `;
+
+        formsetContainer.appendChild(newForm);
+        roomFormCount++;
+        updateTotalForms('room');
+    }
+
+    function addImageForm() {
+        const formsetContainer = document.getElementById('image-formset');
+        const newForm = document.createElement('div');
+        newForm.className = 'image-form p-4 border border-gray-200 rounded-lg';
+
+        newForm.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Image</label>
+                    <input type="file" name="form-${imageFormCount}-image" class="form-control" accept="image/*">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Caption (Optional)</label>
+                    <input type="text" name="form-${imageFormCount}-caption" class="form-control" placeholder="Optional caption for this image">
+                </div>
+            </div>
+            <div class="mt-2">
+                <input type="checkbox" name="form-${imageFormCount}-is_primary" class="mr-2">
+                <label class="text-sm text-gray-700">Set as primary image</label>
+            </div>
+            <button type="button" onclick="this.parentElement.remove(); updateFormCount('image')" class="mt-2 text-red-600 hover:text-red-800 text-sm">
+                <i class="fas fa-trash mr-1"></i>Remove Image
+            </button>
+        `;
+
+        formsetContainer.appendChild(newForm);
+        imageFormCount++;
+        updateTotalForms('image');
+    }
+
+    function updateTotalForms(type) {
+        const totalFormsInput = document.querySelector(`input[name="${type}_formset-TOTAL_FORMS"]`) ||
+                              document.querySelector(`input[name="form-TOTAL_FORMS"]`);
+        if (totalFormsInput) {
+            if (type === 'room') {
+                totalFormsInput.value = roomFormCount;
+            } else if (type === 'image') {
+                totalFormsInput.value = imageFormCount;
+            }
+        }
+    }
+
+    function updateFormCount(type) {
+        if (type === 'room') {
+            roomFormCount--;
+        } else if (type === 'image') {
+            imageFormCount--;
+        }
+        updateTotalForms(type);
+    }
+</script>
+{% endblock %}

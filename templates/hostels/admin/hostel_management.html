@@ -1,0 +1,504 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin - Manage Hostels{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'hostels:admin_dashboard' %}" class="text-gray-600 hover:text-gray-800">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                    </a>
+                    <h1 class="text-2xl font-bold text-gray-900">Manage Hostels</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'hostels:export_data' %}?type=hostels"
+                       class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                        <i class="fas fa-download mr-2"></i>Export
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Filters -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <select name="status" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        <option value="">All Hostels</option>
+                        <option value="verified" {% if current_status == 'verified' %}selected{% endif %}>Verified</option>
+                        <option value="pending" {% if current_status == 'pending' %}selected{% endif %}>Pending Verification</option>
+                        <option value="featured" {% if current_status == 'featured' %}selected{% endif %}>Featured</option>
+                        <option value="inactive" {% if current_status == 'inactive' %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                    <input type="text" name="search" value="{{ search_query }}"
+                           placeholder="Search by name, owner, or address..."
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                        <i class="fas fa-search mr-2"></i>Filter
+                    </button>
+                </div>
+                <div class="flex items-end justify-end">
+                    <button type="button" id="bulk-actions-btn" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors" disabled>
+                        <i class="fas fa-tasks mr-2"></i>Bulk Actions
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Bulk Actions Panel -->
+        <div id="bulk-actions-panel" class="hidden bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <span class="text-yellow-800 font-medium">
+                        <span id="selected-count">0</span> hostel(s) selected
+                    </span>
+                    <div class="flex space-x-2">
+                        <button onclick="bulkAction('approve')" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+                            Approve
+                        </button>
+                        <button onclick="bulkAction('reject')" class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">
+                            Reject
+                        </button>
+                        <button onclick="bulkAction('feature')" class="bg-yellow-600 text-white px-3 py-1 rounded text-sm hover:bg-yellow-700">
+                            Feature
+                        </button>
+                        <button onclick="bulkAction('unfeature')" class="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700">
+                            Unfeature
+                        </button>
+                        <button onclick="bulkAction('activate')" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+                            Activate
+                        </button>
+                        <button onclick="bulkAction('deactivate')" class="bg-orange-600 text-white px-3 py-1 rounded text-sm hover:bg-orange-700">
+                            Deactivate
+                        </button>
+                        <button onclick="bulkAction('delete')" class="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700">
+                            Delete
+                        </button>
+                    </div>
+                </div>
+                <button onclick="clearSelection()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Hostels Table -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-6 py-3 text-left">
+                                <input type="checkbox" id="select-all" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hostel</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for hostel in hostels %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4">
+                                <input type="checkbox" name="selected_hostels" value="{{ hostel.id }}" class="hostel-checkbox rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center">
+                                    {% if hostel.images.first %}
+                                        <img src="{{ hostel.images.first.image.url }}" alt="{{ hostel.name }}"
+                                             class="w-12 h-12 rounded-lg object-cover mr-4">
+                                    {% else %}
+                                        <div class="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center mr-4">
+                                            <i class="fas fa-home text-gray-400"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-900">{{ hostel.name }}</div>
+                                        <div class="text-sm text-gray-500">{{ hostel.address|truncatechars:50 }}</div>
+                                        {% if hostel.nearby_landmark %}
+                                            <div class="text-xs text-blue-600">
+                                                <i class="fas fa-map-marker-alt"></i>
+                                                {{ hostel.landmark_distance }}km from {{ hostel.nearby_landmark }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-gray-900">{{ hostel.owner.get_full_name|default:hostel.owner.username }}</div>
+                                <div class="text-sm text-gray-500">{{ hostel.owner.email }}</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm font-medium text-gray-900">₨{{ hostel.price_per_month|floatformat:0 }}</div>
+                                <div class="text-xs text-gray-500">per month</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col space-y-1">
+                                    {% if hostel.is_verified %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            Verified
+                                        </span>
+                                    {% else %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            Pending
+                                        </span>
+                                    {% endif %}
+                                    {% if hostel.is_featured %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                            Featured
+                                        </span>
+                                    {% endif %}
+                                    {% if not hostel.is_active %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            Inactive
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex space-x-2">
+                                    <a href="{% url 'hostels:hostel_detail' hostel.slug %}"
+                                       class="text-blue-600 hover:text-blue-800 text-sm" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+
+                                    {% if not hostel.is_verified %}
+                                        <button onclick="approveHostel('{{ hostel.id }}')"
+                                                class="text-green-600 hover:text-green-800 text-sm" title="Approve">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button onclick="rejectHostel('{{ hostel.id }}')"
+                                                class="text-red-600 hover:text-red-800 text-sm" title="Reject">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    {% endif %}
+
+                                    <button onclick="toggleFeatured('{{ hostel.id }}')"
+                                            class="text-purple-600 hover:text-purple-800 text-sm"
+                                            title="{% if hostel.is_featured %}Remove from Featured{% else %}Add to Featured{% endif %}">
+                                        {% if hostel.is_featured %}
+                                            <i class="fas fa-star"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    </button>
+
+                                    <button onclick="toggleActive('{{ hostel.id }}')"
+                                            class="{% if hostel.is_active %}text-orange-600 hover:text-orange-800{% else %}text-green-600 hover:text-green-800{% endif %} text-sm"
+                                            title="{% if hostel.is_active %}Deactivate{% else %}Activate{% endif %}">
+                                        {% if hostel.is_active %}
+                                            <i class="fas fa-pause"></i>
+                                        {% else %}
+                                            <i class="fas fa-play"></i>
+                                        {% endif %}
+                                    </button>
+
+                                    <button onclick="deleteHostel('{{ hostel.id }}')"
+                                            class="text-red-600 hover:text-red-800 text-sm" title="Delete Hostel">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                                <i class="fas fa-home text-4xl mb-4"></i>
+                                <p class="text-lg mb-2">No hostels found</p>
+                                <p class="text-sm">Try adjusting your filters or search criteria</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="flex items-center justify-between mt-6">
+            <div class="text-sm text-gray-700">
+                Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} results
+            </div>
+            <div class="flex space-x-2">
+                {% if page_obj.has_previous %}
+                    <a href="?{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}page={{ page_obj.previous_page_number }}"
+                       class="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50">Previous</a>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <span class="px-3 py-2 bg-indigo-600 text-white rounded-md text-sm">{{ num }}</span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <a href="?{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}page={{ num }}"
+                           class="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <a href="?{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}{% if request.GET.search %}search={{ request.GET.search }}&{% endif %}page={{ page_obj.next_page_number }}"
+                       class="px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-500 hover:bg-gray-50">Next</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Success/Error Messages -->
+<div id="message-container" class="fixed top-4 right-4 z-50"></div>
+
+<script>
+// CSRF token for AJAX requests
+const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}';
+
+// Selection management
+const selectAllCheckbox = document.getElementById('select-all');
+const hostelCheckboxes = document.querySelectorAll('.hostel-checkbox');
+const bulkActionsBtn = document.getElementById('bulk-actions-btn');
+const bulkActionsPanel = document.getElementById('bulk-actions-panel');
+const selectedCountSpan = document.getElementById('selected-count');
+
+function updateBulkActions() {
+    const selectedHostels = document.querySelectorAll('.hostel-checkbox:checked');
+    const count = selectedHostels.length;
+
+    selectedCountSpan.textContent = count;
+    bulkActionsBtn.disabled = count === 0;
+    bulkActionsPanel.style.display = count > 0 ? 'block' : 'none';
+}
+
+selectAllCheckbox.addEventListener('change', function() {
+    hostelCheckboxes.forEach(checkbox => {
+        checkbox.checked = this.checked;
+    });
+    updateBulkActions();
+});
+
+hostelCheckboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        const allChecked = Array.from(hostelCheckboxes).every(cb => cb.checked);
+        const noneChecked = Array.from(hostelCheckboxes).every(cb => !cb.checked);
+
+        selectAllCheckbox.checked = allChecked;
+        selectAllCheckbox.indeterminate = !allChecked && !noneChecked;
+
+        updateBulkActions();
+    });
+});
+
+function clearSelection() {
+    hostelCheckboxes.forEach(checkbox => checkbox.checked = false);
+    selectAllCheckbox.checked = false;
+    selectAllCheckbox.indeterminate = false;
+    updateBulkActions();
+}
+
+function showMessage(message, type = 'success') {
+    const messageContainer = document.getElementById('message-container');
+    const alertDiv = document.createElement('div');
+    const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
+
+    alertDiv.className = `${bgColor} text-white px-6 py-3 rounded-lg shadow-lg mb-4 transform transition-all duration-300`;
+    alertDiv.innerHTML = `
+        <div class="flex items-center justify-between">
+            <span>${message}</span>
+            <button onclick="this.parentElement.parentElement.remove()" class="text-white hover:text-gray-200">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+
+    messageContainer.appendChild(alertDiv);
+
+    setTimeout(() => {
+        if (alertDiv.parentElement) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+// Individual actions
+function approveHostel(hostelId) {
+    if (!confirm('Are you sure you want to approve this hostel?')) return;
+
+    fetch(`/api/admin/approve-hostel/${hostelId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showMessage(data.message);
+            location.reload();
+        } else {
+            showMessage(data.error, 'error');
+        }
+    })
+    .catch(error => {
+        showMessage('An error occurred while approving the hostel.', 'error');
+    });
+}
+
+function rejectHostel(hostelId) {
+    const reason = prompt('Please provide a reason for rejection (optional):');
+    if (reason === null) return; // User cancelled
+
+    fetch(`/api/admin/reject-hostel/${hostelId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ reason: reason })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showMessage(data.message);
+            location.reload();
+        } else {
+            showMessage(data.error, 'error');
+        }
+    })
+    .catch(error => {
+        showMessage('An error occurred while rejecting the hostel.', 'error');
+    });
+}
+
+function toggleFeatured(hostelId) {
+    fetch(`/api/admin/toggle-featured/${hostelId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showMessage(data.message);
+            location.reload();
+        } else {
+            showMessage(data.error, 'error');
+        }
+    })
+    .catch(error => {
+        showMessage('An error occurred while updating featured status.', 'error');
+    });
+}
+
+function toggleActive(hostelId) {
+    fetch(`/api/admin/toggle-active/${hostelId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showMessage(data.message);
+            location.reload();
+        } else {
+            showMessage(data.error, 'error');
+        }
+    })
+    .catch(error => {
+        showMessage('An error occurred while updating active status.', 'error');
+    });
+}
+
+// Bulk actions
+function bulkAction(action) {
+    const selectedHostels = Array.from(document.querySelectorAll('.hostel-checkbox:checked')).map(cb => cb.value);
+
+    if (selectedHostels.length === 0) {
+        showMessage('Please select at least one hostel.', 'error');
+        return;
+    }
+
+    const actionLabels = {
+        'approve': 'approve',
+        'reject': 'reject',
+        'feature': 'add to featured',
+        'unfeature': 'remove from featured',
+        'activate': 'activate',
+        'deactivate': 'deactivate'
+    };
+
+    if (!confirm(`Are you sure you want to ${actionLabels[action]} ${selectedHostels.length} hostel(s)?`)) {
+        return;
+    }
+
+    fetch('/api/admin/bulk-action/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            action: action,
+            hostel_ids: selectedHostels
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showMessage(data.message);
+            location.reload();
+        } else {
+            showMessage(data.error, 'error');
+        }
+    })
+    .catch(error => {
+        showMessage('An error occurred while performing bulk action.', 'error');
+    });
+}
+
+// Individual delete function
+function deleteHostel(hostelId) {
+    if (!confirm('Are you sure you want to delete this hostel? This action cannot be undone.')) {
+        return;
+    }
+
+    fetch(`/api/admin/delete-hostel/${hostelId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showMessage(data.message);
+            location.reload();
+        } else {
+            showMessage(data.error, 'error');
+        }
+    })
+    .catch(error => {
+        showMessage('An error occurred while deleting the hostel.', 'error');
+    });
+}
+</script>
+{% endblock %}

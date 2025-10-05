@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+
+{% block title %}My Favorites - HostelHub{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">My Favorite Hostels</h1>
+        <p class="text-gray-600">Keep track of hostels you're interested in</p>
+    </div>
+
+    {% if favorites %}
+        <!-- Stats -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900">{{ favorites.count }} Favorite{{ favorites.count|pluralize }}</h3>
+                    <p class="text-gray-600">Hostels saved for later review</p>
+                </div>
+                <div class="flex items-center text-red-500">
+                    <i class="fas fa-heart text-2xl mr-2"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Favorites Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for favorite in favorites %}
+                <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                    <!-- Hostel Image -->
+                    <div class="relative">
+                        {% if favorite.hostel.images.first %}
+                            <img
+                                src="{{ favorite.hostel.images.first.image.url }}"
+                                alt="{{ favorite.hostel.name }}"
+                                class="w-full h-48 object-cover rounded-t-lg"
+                            >
+                        {% else %}
+                            <div class="w-full h-48 bg-gray-200 rounded-t-lg flex items-center justify-center">
+                                <i class="fas fa-home text-4xl text-gray-400"></i>
+                            </div>
+                        {% endif %}
+
+                        <!-- Remove from Favorites Button -->
+                        <form method="POST" action="{% url 'hostels:remove_from_favorites' favorite.hostel.slug %}" class="absolute top-3 right-3">
+                            {% csrf_token %}
+                            <button
+                                type="submit"
+                                class="bg-white text-red-500 hover:bg-red-50 p-2 rounded-full shadow-md transition-colors"
+                                title="Remove from favorites"
+                            >
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </form>
+
+                        <!-- Verification Badge -->
+                        {% if favorite.hostel.is_verified %}
+                            <span class="absolute top-3 left-3 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                                <i class="fas fa-check-circle mr-1"></i>Verified
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="p-6">
+                        <!-- Hostel Name and Price -->
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="text-lg font-semibold text-gray-900 hover:text-indigo-600">
+                                <a href="{{ favorite.hostel.get_absolute_url }}">{{ favorite.hostel.name }}</a>
+                            </h3>
+                            {% if favorite.hostel.min_price %}
+                                <div class="text-lg font-bold text-indigo-600">
+                                    ₨{{ favorite.hostel.min_price }}/mo
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Address -->
+                        <p class="text-gray-600 mb-3 flex items-center">
+                            <i class="fas fa-map-marker-alt mr-2 text-gray-400"></i>
+                            {{ favorite.hostel.address|truncatewords:8 }}
+                        </p>
+
+                        <!-- Added Date -->
+                        <p class="text-sm text-gray-500 mb-3">
+                            <i class="fas fa-heart mr-1"></i>
+                            Added {{ favorite.created_at|date:"M j, Y" }}
+                        </p>
+
+                        <!-- Room Types -->
+                        {% if favorite.hostel.room_types.all %}
+                            <div class="mb-3">
+                                <div class="flex flex-wrap gap-1">
+                                    {% for room_type in favorite.hostel.room_types.all|slice:":2" %}
+                                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                                            {{ room_type.get_type_display }}: ₨{{ room_type.price }}
+                                        </span>
+                                    {% endfor %}
+                                    {% if favorite.hostel.room_types.count > 2 %}
+                                        <span class="text-gray-500 text-xs">+{{ favorite.hostel.room_types.count|add:"-2" }} more</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Facilities -->
+                        {% if favorite.hostel.hostel_facilities.all %}
+                            <div class="mb-4">
+                                <div class="flex flex-wrap gap-1">
+                                    {% for hf in favorite.hostel.hostel_facilities.all|slice:":3" %}
+                                        <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
+                                            {{ hf.facility.name }}
+                                        </span>
+                                    {% endfor %}
+                                    {% if favorite.hostel.hostel_facilities.count > 3 %}
+                                        <span class="text-gray-500 text-xs">+{{ favorite.hostel.hostel_facilities.count|add:"-3" }} more</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Action Buttons -->
+                        <div class="flex gap-2">
+                            <a
+                                href="{{ favorite.hostel.get_absolute_url }}"
+                                class="flex-1 text-center bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors"
+                            >
+                                View Details
+                            </a>
+                            <button
+                                onclick="showContact('{{ favorite.hostel.slug }}')"
+                                class="bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors"
+                            >
+                                <i class="fas fa-phone"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="mt-8 bg-gray-50 rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+            <div class="flex flex-wrap gap-4">
+                <a
+                    href="{% url 'hostels:hostel_list' %}"
+                    class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors inline-flex items-center"
+                >
+                    <i class="fas fa-search mr-2"></i>Find More Hostels
+                </a>
+                <button
+                    onclick="shareList()"
+                    class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors inline-flex items-center"
+                >
+                    <i class="fas fa-share mr-2"></i>Share List
+                </button>
+                <button
+                    onclick="exportList()"
+                    class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors inline-flex items-center"
+                >
+                    <i class="fas fa-download mr-2"></i>Export List
+                </button>
+            </div>
+        </div>
+    {% else %}
+        <!-- Empty State -->
+        <div class="bg-white rounded-lg shadow-md p-12 text-center">
+            <i class="fas fa-heart text-6xl text-gray-400 mb-6"></i>
+            <h3 class="text-2xl font-semibold text-gray-900 mb-4">No favorites yet</h3>
+            <p class="text-gray-600 mb-8 max-w-md mx-auto">
+                Start exploring hostels and save your favorites for easy access later.
+                Click the heart icon on any hostel to add it to your favorites.
+            </p>
+
+            <div class="space-y-4">
+                <a
+                    href="{% url 'hostels:hostel_list' %}"
+                    class="bg-indigo-600 text-white px-8 py-3 rounded-lg hover:bg-indigo-700 transition-colors inline-flex items-center"
+                >
+                    <i class="fas fa-search mr-2"></i>Browse Hostels
+                </a>
+
+                <div class="text-sm text-gray-500">
+                    <p>💡 Tip: You can favorite hostels by clicking the heart icon when browsing or viewing details.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- How to Use Favorites -->
+        <div class="mt-8 bg-blue-50 rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-blue-900 mb-4">
+                <i class="fas fa-info-circle mr-2"></i>How to Use Favorites
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-blue-800">
+                <div>
+                    <h4 class="font-semibold mb-2">Adding Favorites</h4>
+                    <ul class="space-y-1">
+                        <li>• Browse hostels or search for specific locations</li>
+                        <li>• Click the heart icon on any hostel card</li>
+                        <li>• View hostel details and add to favorites from there</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-2">Managing Favorites</h4>
+                    <ul class="space-y-1">
+                        <li>• Access all favorites from this page</li>
+                        <li>• Remove favorites by clicking the heart again</li>
+                        <li>• Compare hostels side by side easily</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    function shareList() {
+        if (navigator.share) {
+            navigator.share({
+                title: 'My Favorite Hostels - HostelHub',
+                text: 'Check out my favorite hostels on HostelHub',
+                url: window.location.href
+            }).catch(console.error);
+        } else {
+            // Fallback for browsers that don't support Web Share API
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Link copied to clipboard!');
+            }).catch(() => {
+                alert('Could not copy link. URL: ' + url);
+            });
+        }
+    }
+
+    function exportList() {
+        alert('Export functionality will be implemented to generate PDF or Excel file with favorite hostels');
+    }
+</script>
+{% endblock %}

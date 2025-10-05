@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+
+{% block title %}Review Moderation - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Review Moderation</h1>
+            <p class="text-gray-600 mt-1">Manage and moderate hostel reviews</p>
+        </div>
+        <a href="{% url 'hostels:admin_dashboard' %}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-600">Total Reviews</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ stats.total_reviews }}</p>
+                </div>
+                <div class="ml-4">
+                    <i class="fas fa-comment text-3xl text-blue-500"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-600">Pending Reviews</p>
+                    <p class="text-2xl font-bold text-orange-600">{{ stats.pending_reviews }}</p>
+                </div>
+                <div class="ml-4">
+                    <i class="fas fa-clock text-3xl text-orange-500"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-600">Approved Reviews</p>
+                    <p class="text-2xl font-bold text-green-600">{{ stats.approved_reviews }}</p>
+                </div>
+                <div class="ml-4">
+                    <i class="fas fa-check-circle text-3xl text-green-500"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-1">
+                    <p class="text-sm font-medium text-gray-600">Average Rating</p>
+                    <p class="text-2xl font-bold text-yellow-600">{{ stats.average_rating|floatformat:1 }}</p>
+                </div>
+                <div class="ml-4">
+                    <i class="fas fa-star text-3xl text-yellow-500"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="bg-white rounded-lg shadow mb-6">
+        <div class="border-b border-gray-200">
+            <nav class="-mb-px flex">
+                <button
+                    class="tab-btn py-4 px-6 text-sm font-medium border-b-2 {% if not request.GET.status or request.GET.status == 'all' %}border-indigo-500 text-indigo-600{% else %}border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300{% endif %}"
+                    data-status="all"
+                >
+                    All Reviews ({{ stats.total_reviews }})
+                </button>
+                <button
+                    class="tab-btn py-4 px-6 text-sm font-medium border-b-2 {% if request.GET.status == 'pending' %}border-orange-500 text-orange-600{% else %}border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300{% endif %}"
+                    data-status="pending"
+                >
+                    Pending ({{ stats.pending_reviews }})
+                </button>
+                <button
+                    class="tab-btn py-4 px-6 text-sm font-medium border-b-2 {% if request.GET.status == 'approved' %}border-green-500 text-green-600{% else %}border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300{% endif %}"
+                    data-status="approved"
+                >
+                    Approved ({{ stats.approved_reviews }})
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Reviews List -->
+    <div class="bg-white rounded-lg shadow">
+        {% if reviews %}
+            <div class="divide-y divide-gray-200">
+                {% for review in reviews %}
+                    <div class="p-6 hover:bg-gray-50 transition-colors" id="review-{{ review.id }}">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center mb-3">
+                                    <!-- Rating Stars -->
+                                    <div class="flex text-yellow-400 mr-3">
+                                        {% for i in "12345" %}
+                                            <i class="fas fa-star{% if forloop.counter > review.rating %} text-gray-300{% endif %}"></i>
+                                        {% endfor %}
+                                    </div>
+                                    <span class="font-medium text-gray-900 mr-2">{{ review.rating }}/5</span>
+
+                                    <!-- Status Badge -->
+                                    {% if review.is_approved %}
+                                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Approved</span>
+                                    {% else %}
+                                        <span class="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">Pending</span>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Review Content -->
+                                <p class="text-gray-700 mb-4 leading-relaxed">{{ review.review_text }}</p>
+
+                                <!-- Meta Information -->
+                                <div class="flex items-center text-sm text-gray-500 mb-4">
+                                    <div class="flex items-center mr-6">
+                                        <i class="fas fa-user mr-1"></i>
+                                        <span>{{ review.user.get_full_name|default:review.user.username }}</span>
+                                    </div>
+                                    <div class="flex items-center mr-6">
+                                        <i class="fas fa-home mr-1"></i>
+                                        <a href="{% url 'hostels:hostel_detail' review.hostel.slug %}" class="hover:text-indigo-600">
+                                            {{ review.hostel.name }}
+                                        </a>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-calendar mr-1"></i>
+                                        <span>{{ review.created_at|date:"M j, Y g:i A" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="flex items-center gap-2 ml-6">
+                                {% if not review.is_approved %}
+                                    <button
+                                        onclick="approveReview({{ review.id }})"
+                                        class="bg-green-600 text-white px-3 py-2 rounded-md hover:bg-green-700 transition-colors text-sm"
+                                    >
+                                        <i class="fas fa-check mr-1"></i>Approve
+                                    </button>
+                                {% else %}
+                                    <button
+                                        onclick="unapproveReview({{ review.id }})"
+                                        class="bg-orange-600 text-white px-3 py-2 rounded-md hover:bg-orange-700 transition-colors text-sm"
+                                    >
+                                        <i class="fas fa-eye-slash mr-1"></i>Unapprove
+                                    </button>
+                                {% endif %}
+
+                                <button
+                                    onclick="deleteReview({{ review.id }})"
+                                    class="bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 transition-colors text-sm"
+                                >
+                                    <i class="fas fa-trash mr-1"></i>Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+                <div class="px-6 py-4 border-t border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1 flex justify-between sm:hidden">
+                            {% if page_obj.has_previous %}
+                                <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Previous</a>
+                            {% endif %}
+                            {% if page_obj.has_next %}
+                                <a href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">Next</a>
+                            {% endif %}
+                        </div>
+                        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                            <div>
+                                <p class="text-sm text-gray-700">
+                                    Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                    ({{ page_obj.paginator.count }} total reviews)
+                                </p>
+                            </div>
+                            <div>
+                                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                                    {% if page_obj.has_previous %}
+                                        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                            <span class="sr-only">Previous</span>
+                                            <i class="fas fa-chevron-left"></i>
+                                        </a>
+                                    {% endif %}
+                                    {% if page_obj.has_next %}
+                                        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                            <span class="sr-only">Next</span>
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    {% endif %}
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-12">
+                <i class="fas fa-comment-slash text-4xl text-gray-400 mb-4"></i>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No reviews found</h3>
+                <p class="text-gray-500">Reviews will appear here as they are submitted by users.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Tab functionality
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const status = this.dataset.status;
+        const url = new URL(window.location);
+        if (status === 'all') {
+            url.searchParams.delete('status');
+        } else {
+            url.searchParams.set('status', status);
+        }
+        window.location = url;
+    });
+});
+
+// Review moderation functions
+function approveReview(reviewId) {
+    fetch(`/hostels/api/admin/approve-review/${reviewId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showMessage('Review approved successfully!', 'success');
+            location.reload();
+        } else {
+            showMessage(data.error || 'Failed to approve review.', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showMessage('An error occurred. Please try again.', 'error');
+    });
+}
+
+function unapproveReview(reviewId) {
+    fetch(`/hostels/api/admin/unapprove-review/${reviewId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showMessage('Review unapproved successfully!', 'success');
+            location.reload();
+        } else {
+            showMessage(data.error || 'Failed to unapprove review.', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showMessage('An error occurred. Please try again.', 'error');
+    });
+}
+
+function deleteReview(reviewId) {
+    if (confirm('Are you sure you want to delete this review? This action cannot be undone.')) {
+        fetch(`/hostels/api/admin/delete-review/${reviewId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showMessage('Review deleted successfully!', 'success');
+                document.getElementById(`review-${reviewId}`).remove();
+            } else {
+                showMessage(data.error || 'Failed to delete review.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('An error occurred. Please try again.', 'error');
+        });
+    }
+}
+
+// Utility function to show messages
+function showMessage(message, type = 'info') {
+    const colors = {
+        success: 'bg-green-50 border-green-200 text-green-800',
+        error: 'bg-red-50 border-red-200 text-red-800',
+        info: 'bg-blue-50 border-blue-200 text-blue-800',
+        warning: 'bg-yellow-50 border-yellow-200 text-yellow-800'
+    };
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `fixed top-4 right-4 z-50 p-4 border rounded-lg ${colors[type]} transition-all duration-300`;
+    messageDiv.innerHTML = `
+        <div class="flex items-center justify-between">
+            <span>${message}</span>
+            <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-lg">&times;</button>
+        </div>
+    `;
+
+    document.body.appendChild(messageDiv);
+
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (messageDiv.parentElement) {
+            messageDiv.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

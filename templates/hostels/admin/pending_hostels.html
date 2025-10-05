@@ -1,0 +1,342 @@
+{% extends 'base.html' %}
+
+{% block title %}Pending Hostels - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <nav class="flex mb-4" aria-label="Breadcrumb">
+            <ol class="flex items-center space-x-4">
+                <li>
+                    <a href="{% url 'hostels:admin_dashboard' %}" class="text-gray-400 hover:text-gray-600">
+                        Admin Dashboard
+                    </a>
+                </li>
+                <li>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </li>
+                <li class="text-gray-900">Pending Hostels</li>
+            </ol>
+        </nav>
+
+        <h1 class="text-3xl font-bold text-gray-900">Pending Hostels</h1>
+        <p class="text-gray-600">Review and approve hostel listings</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="bg-yellow-100 p-3 rounded-full">
+                    <i class="fas fa-clock text-2xl text-yellow-600"></i>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-2xl font-bold text-gray-900">{{ page_obj.paginator.count }}</h3>
+                    <p class="text-gray-600">Pending Approval</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="bg-green-100 p-3 rounded-full">
+                    <i class="fas fa-check text-2xl text-green-600"></i>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-2xl font-bold text-gray-900">0</h3>
+                    <p class="text-gray-600">Approved Today</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center">
+                <div class="bg-blue-100 p-3 rounded-full">
+                    <i class="fas fa-eye text-2xl text-blue-600"></i>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-2xl font-bold text-gray-900">0</h3>
+                    <p class="text-gray-600">Under Review</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hostels List -->
+    {% if hostels %}
+        <div class="space-y-6">
+            {% for hostel in hostels %}
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="p-6">
+                        <div class="flex flex-col lg:flex-row gap-6">
+                            <!-- Hostel Image -->
+                            <div class="lg:w-1/3">
+                                {% if hostel.images.first %}
+                                    <img
+                                        src="{{ hostel.images.first.image.url }}"
+                                        alt="{{ hostel.name }}"
+                                        class="w-full h-48 lg:h-32 object-cover rounded-lg"
+                                    >
+                                {% else %}
+                                    <div class="w-full h-48 lg:h-32 bg-gray-200 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-home text-4xl text-gray-400"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Hostel Info -->
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div>
+                                        <h3 class="text-xl font-semibold text-gray-900 mb-1">{{ hostel.name }}</h3>
+                                        <p class="text-gray-600 flex items-center mb-2">
+                                            <i class="fas fa-map-marker-alt mr-2"></i>
+                                            {{ hostel.address }}
+                                        </p>
+                                        <p class="text-gray-500 text-sm">
+                                            Submitted {{ hostel.created_at|date:"M j, Y g:i A" }} by {{ hostel.owner.username }}
+                                        </p>
+                                    </div>
+
+                                    <div class="flex flex-col sm:flex-row gap-2">
+                                        <button
+                                            onclick="approveHostel('{{ hostel.id }}')"
+                                            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                                        >
+                                            <i class="fas fa-check mr-1"></i>Approve
+                                        </button>
+                                        <button
+                                            onclick="rejectHostel('{{ hostel.id }}')"
+                                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                                        >
+                                            <i class="fas fa-times mr-1"></i>Reject
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Description -->
+                                <div class="mb-4">
+                                    <h4 class="font-medium text-gray-900 mb-2">Description:</h4>
+                                    <p class="text-gray-600 text-sm">{{ hostel.description|truncatewords:30 }}</p>
+                                </div>
+
+                                <!-- Contact Info -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <h4 class="font-medium text-gray-900 mb-1">Contact Information:</h4>
+                                        <p class="text-gray-600 text-sm">
+                                            <i class="fas fa-envelope mr-1"></i>{{ hostel.contact_email }}
+                                        </p>
+                                        <p class="text-gray-600 text-sm">
+                                            <i class="fas fa-phone mr-1"></i>{{ hostel.contact_phone }}
+                                        </p>
+                                        {% if hostel.whatsapp_number %}
+                                            <p class="text-gray-600 text-sm">
+                                                <i class="fab fa-whatsapp mr-1"></i>{{ hostel.whatsapp_number }}
+                                            </p>
+                                        {% endif %}
+                                    </div>
+
+                                    <div>
+                                        <h4 class="font-medium text-gray-900 mb-1">Owner Information:</h4>
+                                        <p class="text-gray-600 text-sm">
+                                            <i class="fas fa-user mr-1"></i>{{ hostel.owner.get_full_name|default:hostel.owner.username }}
+                                        </p>
+                                        {% if hostel.owner.phone_number %}
+                                            <p class="text-gray-600 text-sm">
+                                                <i class="fas fa-phone mr-1"></i>{{ hostel.owner.phone_number }}
+                                            </p>
+                                        {% endif %}
+                                        <p class="text-gray-600 text-sm">
+                                            <i class="fas fa-calendar mr-1"></i>Joined {{ hostel.owner.date_joined|date:"M Y" }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Room Types -->
+                                {% if hostel.room_types.all %}
+                                    <div class="mb-4">
+                                        <h4 class="font-medium text-gray-900 mb-2">Room Types:</h4>
+                                        <div class="flex flex-wrap gap-2">
+                                            {% for room_type in hostel.room_types.all %}
+                                                <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                                                    {{ room_type.get_type_display }}: ₨{{ room_type.price }}
+                                                </span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+
+                                <!-- Facilities -->
+                                {% if hostel.hostel_facilities.all %}
+                                    <div class="mb-4">
+                                        <h4 class="font-medium text-gray-900 mb-2">Facilities:</h4>
+                                        <div class="flex flex-wrap gap-2">
+                                            {% for hf in hostel.hostel_facilities.all|slice:":5" %}
+                                                <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
+                                                    {{ hf.facility.name }}
+                                                </span>
+                                            {% endfor %}
+                                            {% if hostel.hostel_facilities.count > 5 %}
+                                                <span class="text-gray-500 text-xs">+{{ hostel.hostel_facilities.count|add:"-5" }} more</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+
+                                <!-- Action Buttons -->
+                                <div class="flex gap-3 pt-4 border-t border-gray-200">
+                                    <a
+                                        href="{{ hostel.get_absolute_url }}"
+                                        class="text-indigo-600 hover:text-indigo-800 text-sm"
+                                        target="_blank"
+                                    >
+                                        <i class="fas fa-external-link-alt mr-1"></i>View Full Listing
+                                    </a>
+                                    <button
+                                        onclick="contactOwner('{{ hostel.owner.email }}')"
+                                        class="text-blue-600 hover:text-blue-800 text-sm"
+                                    >
+                                        <i class="fas fa-envelope mr-1"></i>Contact Owner
+                                    </button>
+                                    <button
+                                        onclick="viewHistory('{{ hostel.id }}')"
+                                        class="text-gray-600 hover:text-gray-800 text-sm"
+                                    >
+                                        <i class="fas fa-history mr-1"></i>View History
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+            <nav class="flex justify-center mt-8">
+                <div class="flex space-x-2">
+                    {% if page_obj.has_previous %}
+                        <a
+                            href="?page={{ page_obj.previous_page_number }}"
+                            class="px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                        >
+                            Previous
+                        </a>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <span class="px-3 py-2 bg-indigo-600 text-white rounded-md">{{ num }}</span>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <a
+                                href="?page={{ num }}"
+                                class="px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                            >
+                                {{ num }}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <a
+                            href="?page={{ page_obj.next_page_number }}"
+                            class="px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                        >
+                            Next
+                        </a>
+                    {% endif %}
+                </div>
+            </nav>
+        {% endif %}
+    {% else %}
+        <!-- No Pending Hostels -->
+        <div class="bg-white rounded-lg shadow-md p-12 text-center">
+            <i class="fas fa-check-circle text-6xl text-green-400 mb-4"></i>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">All caught up!</h3>
+            <p class="text-gray-600">There are no hostels pending verification at the moment.</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function approveHostel(hostelId) {
+        if (confirm('Are you sure you want to approve this hostel?')) {
+            fetch(`/api/admin/approve-hostel/${hostelId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload(); // Refresh the page to update the list
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to approve hostel. Please try again.');
+            });
+        }
+    }
+
+    function rejectHostel(hostelId) {
+        const reason = prompt('Please provide a reason for rejection (optional):');
+        if (reason !== null) {
+            fetch(`/api/admin/reject-hostel/${hostelId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ reason: reason })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload(); // Refresh the page to update the list
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to reject hostel. Please try again.');
+            });
+        }
+    }
+
+    function contactOwner(email) {
+        window.location.href = `mailto:${email}?subject=Regarding your hostel listing on HostelHub`;
+    }
+
+    function viewHistory(hostelId) {
+        alert('Hostel history view functionality will be implemented');
+    }
+</script>
+{% endblock %}

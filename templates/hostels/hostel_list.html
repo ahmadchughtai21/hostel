@@ -1,0 +1,383 @@
+{% extends 'base.html' %}
+
+{% block title %}Browse Hostels - HostelHub{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex flex-col lg:flex-row gap-8">
+        <!-- Filters Sidebar -->
+        <aside class="w-full lg:w-1/4 lg:max-w-xs flex-shrink-0">
+            <div class="bg-white rounded-lg shadow-md p-6 sticky top-8 overflow-hidden">
+                <h3 class="text-lg font-semibold mb-4">Filter Hostels</h3>
+
+                <form method="GET" class="space-y-6">
+                    <!-- Search Query -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                        <input
+                            type="text"
+                            name="q"
+                            value="{{ request.GET.q }}"
+                            placeholder="Location, hostel name..."
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                    </div>
+
+                    <!-- Landmark Search -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Near Landmark</label>
+                        <input
+                            type="text"
+                            name="landmark"
+                            value="{{ request.GET.landmark }}"
+                            placeholder="University, school, workplace..."
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                    </div>
+
+                    <!-- Distance Filter -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Max Distance (km)</label>
+                        <input
+                            type="number"
+                            name="max_distance"
+                            value="{{ request.GET.max_distance }}"
+                            placeholder="e.g., 2.5"
+                            step="0.5"
+                            min="0"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                    </div>
+
+                    <!-- Price Range -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Price Range (PKR/month)</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input
+                                type="number"
+                                name="min_price"
+                                value="{{ request.GET.min_price }}"
+                                placeholder="Min"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                            >
+                            <input
+                                type="number"
+                                name="max_price"
+                                value="{{ request.GET.max_price }}"
+                                placeholder="Max"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Room Type -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Room Type</label>
+                        <select
+                            name="room_type"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                            <option value="">All Types</option>
+                            {% for value, label in room_types %}
+                                <option value="{{ value }}" {% if request.GET.room_type == value %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Minimum Rating -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Minimum Rating</label>
+                        <select
+                            name="min_rating"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                            <option value="">Any Rating</option>
+                            {% for option in rating_options %}
+                                <option value="{{ option.value }}" {% if request.GET.min_rating == option.value %}selected{% endif %}>
+                                    {{ option.label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Facilities -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Facilities</label>
+                        <div class="space-y-2 max-h-40 overflow-y-auto">
+                            {% for facility in facilities %}
+                                <label class="flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        name="facilities"
+                                        value="{{ facility.id }}"
+                                        {% if facility.id|stringformat:"s" in request.GET.facilities %}checked{% endif %}
+                                        class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                    >
+                                    <span class="ml-2 text-sm text-gray-700">{{ facility.name }}</span>
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors"
+                    >
+                        Apply Filters
+                    </button>
+
+                    <a
+                        href="{% url 'hostels:hostel_list' %}"
+                        class="block w-full text-center border border-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-50 transition-colors"
+                    >
+                        Clear Filters
+                    </a>
+                </form>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="lg:w-3/4">
+            <!-- Header with Sort Options -->
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Browse Hostels</h1>
+                    <p class="text-gray-600">{{ page_obj.paginator.count }} hostels found</p>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <label class="text-sm font-medium text-gray-700">Sort by:</label>
+                    <select
+                        onchange="this.form.submit()"
+                        name="sort"
+                        form="sort-form"
+                        class="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                        <option value="featured" {% if request.GET.sort == 'featured' or not request.GET.sort %}selected{% endif %}>
+                            Featured First
+                        </option>
+                        <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>
+                            Newest First
+                        </option>
+                        <option value="distance" {% if request.GET.sort == 'distance' %}selected{% endif %}>
+                            Distance
+                        </option>
+                        <option value="price_low" {% if request.GET.sort == 'price_low' %}selected{% endif %}>
+                            Price: Low to High
+                        </option>
+                        <option value="price_high" {% if request.GET.sort == 'price_high' %}selected{% endif %}>
+                            Price: High to Low
+                        </option>
+                        <option value="rating" {% if request.GET.sort == 'rating' %}selected{% endif %}>
+                            Highest Rated
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Hidden form for sorting -->
+            <form id="sort-form" method="GET" class="hidden">
+                {% for key, value in request.GET.items %}
+                    {% if key != 'sort' %}
+                        <input type="hidden" name="{{ key }}" value="{{ value }}">
+                    {% endif %}
+                {% endfor %}
+            </form>
+
+            <!-- Hostels Grid -->
+            {% if hostels %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {% for hostel in hostels %}
+                        <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                            <!-- Hostel Image -->
+                            <div class="relative">
+                                {% if hostel.images.first %}
+                                    <img
+                                        src="{{ hostel.images.first.image.url }}"
+                                        alt="{{ hostel.name }}"
+                                        class="w-full h-48 object-cover rounded-t-lg"
+                                    >
+                                {% else %}
+                                    <div class="w-full h-48 bg-gray-200 rounded-t-lg flex items-center justify-center">
+                                        <i class="fas fa-home text-4xl text-gray-400"></i>
+                                    </div>
+                                {% endif %}
+
+                                <!-- Status Badges -->
+                                <div class="absolute top-3 right-3 space-y-2">
+                                    {% if hostel.is_featured %}
+                                        <span class="block bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">
+                                            <i class="fas fa-star mr-1"></i>Featured
+                                        </span>
+                                    {% endif %}
+                                    {% if hostel.is_verified %}
+                                        <span class="block bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                                            <i class="fas fa-check-circle mr-1"></i>Verified
+                                        </span>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Favorite Button (for logged in users) -->
+                                {% if user.is_authenticated and user.role == 'student' %}
+                                    <form method="POST" action="{% url 'hostels:add_to_favorites' hostel.slug %}" class="absolute top-3 left-3">
+                                        {% csrf_token %}
+                                        <button
+                                            type="submit"
+                                            class="bg-white text-gray-600 hover:text-red-500 p-2 rounded-full shadow-md transition-colors"
+                                        >
+                                            <i class="fas fa-heart"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+
+                            <div class="p-6">
+                                <!-- Hostel Name and Price -->
+                                <div class="flex justify-between items-start mb-2">
+                                    <h3 class="text-lg font-semibold text-gray-900 hover:text-indigo-600">
+                                        <a href="{{ hostel.get_absolute_url }}">{{ hostel.name }}</a>
+                                    </h3>
+                                    {% if hostel.min_price %}
+                                        <div class="text-lg font-bold text-indigo-600">
+                                            ₨{{ hostel.min_price }}/mo
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Rating -->
+                                <div class="flex items-center mb-3">
+                                    {% if hostel.average_rating %}
+                                        <div class="flex items-center bg-yellow-50 rounded px-2 py-1">
+                                            <div class="flex text-yellow-400 text-sm mr-2">
+                                                {{ hostel.rating_stars_display|safe }}
+                                            </div>
+                                            <span class="text-gray-900 text-sm font-semibold">{{ hostel.average_rating }}</span>
+                                            <span class="text-gray-500 text-xs ml-1">({{ hostel.rating_count }})</span>
+                                        </div>
+                                    {% else %}
+                                        <div class="flex items-center text-gray-400 text-sm bg-gray-50 rounded px-2 py-1">
+                                            <i class="far fa-star mr-1"></i>
+                                            <span class="text-xs">No reviews</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Address -->
+                                <p class="text-gray-600 mb-2 flex items-center">
+                                    <i class="fas fa-map-marker-alt mr-2 text-gray-400"></i>
+                                    {{ hostel.address|truncatewords:10 }}
+                                </p>
+
+                                <!-- Landmark Information -->
+                                {% if hostel.nearby_landmark %}
+                                    <p class="text-sm text-blue-600 mb-3 flex items-center">
+                                        <i class="fas fa-university mr-2 text-blue-400"></i>
+                                        {{ hostel.landmark_distance }}km from {{ hostel.nearby_landmark }}
+                                    </p>
+                                {% endif %}
+
+                                <!-- Room Types -->
+                                <div class="mb-3">
+                                    <div class="flex flex-wrap gap-1">
+                                        {% for room_type in hostel.room_types.all|slice:":3" %}
+                                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                                                {{ room_type.get_type_display }}: ₨{{ room_type.price }}
+                                            </span>
+                                        {% endfor %}
+                                        {% if hostel.room_types.count > 3 %}
+                                            <span class="text-gray-500 text-xs">+{{ hostel.room_types.count|add:"-3" }} more</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Facilities -->
+                                <div class="mb-4">
+                                    <div class="flex flex-wrap gap-1">
+                                        {% for hf in hostel.hostel_facilities.all|slice:":4" %}
+                                            <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
+                                                {{ hf.facility.name }}
+                                            </span>
+                                        {% endfor %}
+                                        {% if hostel.hostel_facilities.count > 4 %}
+                                            <span class="text-gray-500 text-xs">+{{ hostel.hostel_facilities.count|add:"-4" }} more</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="flex gap-2">
+                                    <a
+                                        href="{{ hostel.get_absolute_url }}"
+                                        class="flex-1 text-center bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors"
+                                    >
+                                        View Details
+                                    </a>
+                                    <button
+                                        onclick="showContact('{{ hostel.slug }}')"
+                                        class="bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors"
+                                    >
+                                        <i class="fas fa-phone"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                    <nav class="flex justify-center mt-8">
+                        <div class="flex space-x-2">
+                            {% if page_obj.has_previous %}
+                                <a
+                                    href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}"
+                                    class="px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                                >
+                                    Previous
+                                </a>
+                            {% endif %}
+
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <span class="px-3 py-2 bg-indigo-600 text-white rounded-md">{{ num }}</span>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <a
+                                        href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}"
+                                        class="px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                                    >
+                                        {{ num }}
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                                <a
+                                    href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}"
+                                    class="px-3 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                                >
+                                    Next
+                                </a>
+                            {% endif %}
+                        </div>
+                    </nav>
+                {% endif %}
+            {% else %}
+                <!-- No Results -->
+                <div class="text-center py-12">
+                    <i class="fas fa-search text-4xl text-gray-400 mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">No hostels found</h3>
+                    <p class="text-gray-600 mb-4">Try adjusting your search criteria or clear the filters.</p>
+                    <a
+                        href="{% url 'hostels:hostel_list' %}"
+                        class="bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition-colors"
+                    >
+                        Clear All Filters
+                    </a>
+                </div>
+            {% endif %}
+        </main>
+    </div>
+</div>
+{% endblock %}

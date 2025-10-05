@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Profile - HostelHub{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <div class="flex items-center space-x-5">
+                <div class="flex-shrink-0">
+                    {% if user.profile_picture %}
+                        <img class="h-20 w-20 rounded-full object-cover" src="{{ user.profile_picture.url }}" alt="{{ user.username }}">
+                    {% else %}
+                        <div class="h-20 w-20 rounded-full bg-gray-300 flex items-center justify-center">
+                            <i class="fas fa-user text-gray-600 text-2xl"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="flex-1">
+                    <h1 class="text-2xl font-bold text-gray-900">{{ user.get_full_name|default:user.username }}</h1>
+                    <p class="text-sm text-gray-500">{{ user.get_role_display }}</p>
+                    <p class="text-sm text-gray-500">Member since {{ user.date_joined|date:"F Y" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-8 bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+            <h2 class="text-lg font-medium text-gray-900 mb-6">Update Profile</h2>
+
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            First Name
+                        </label>
+                        <input
+                            id="{{ form.first_name.id_for_label }}"
+                            name="{{ form.first_name.name }}"
+                            type="text"
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            value="{{ form.first_name.value|default:'' }}"
+                        >
+                        {% if form.first_name.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.first_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Last Name
+                        </label>
+                        <input
+                            id="{{ form.last_name.id_for_label }}"
+                            name="{{ form.last_name.name }}"
+                            type="text"
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            value="{{ form.last_name.value|default:'' }}"
+                        >
+                        {% if form.last_name.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.last_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Email Address
+                    </label>
+                    <input
+                        id="{{ form.email.id_for_label }}"
+                        name="{{ form.email.name }}"
+                        type="email"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        value="{{ form.email.value|default:'' }}"
+                    >
+                    {% if form.email.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="{{ form.phone_number.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Phone Number
+                        </label>
+                        <input
+                            id="{{ form.phone_number.id_for_label }}"
+                            name="{{ form.phone_number.name }}"
+                            type="tel"
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            value="{{ form.phone_number.value|default:'' }}"
+                        >
+                        {% if form.phone_number.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.phone_number.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.whatsapp_number.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            WhatsApp Number
+                        </label>
+                        <input
+                            id="{{ form.whatsapp_number.id_for_label }}"
+                            name="{{ form.whatsapp_number.name }}"
+                            type="tel"
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            value="{{ form.whatsapp_number.value|default:'' }}"
+                        >
+                        {% if form.whatsapp_number.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ form.whatsapp_number.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if form.profile_picture %}
+                <div>
+                    <label for="{{ form.profile_picture.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                        Profile Picture
+                    </label>
+                    <input
+                        id="{{ form.profile_picture.id_for_label }}"
+                        name="{{ form.profile_picture.name }}"
+                        type="file"
+                        accept="image/*"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    >
+                    {% if form.profile_picture.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.profile_picture.errors.0 }}</p>
+                    {% endif %}
+                    <p class="mt-1 text-sm text-gray-500">Upload a profile picture (JPG, PNG, max 5MB)</p>
+                </div>
+                {% endif %}
+
+                <div class="flex justify-end">
+                    <button
+                        type="submit"
+                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                        Update Profile
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

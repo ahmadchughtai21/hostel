@@ -1,0 +1,527 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit {{ hostel.name }} - HostelHub{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+        <nav class="flex mb-4" aria-label="Breadcrumb">
+            <ol class="flex items-center space-x-4">
+                <li>
+                    <a href="{% url 'hostels:owner_dashboard' %}" class="text-gray-400 hover:text-gray-600">
+                        Owner Dashboard
+                    </a>
+                </li>
+                <li>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </li>
+                <li class="text-gray-900">Edit {{ hostel.name }}</li>
+            </ol>
+        </nav>
+
+        <h1 class="text-3xl font-bold text-gray-900">Edit Hostel</h1>
+        <p class="text-gray-600">Update your hostel information</p>
+    </div>
+
+    <!-- Form -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Hostel Name -->
+            <div>
+                <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    Hostel Name *
+                </label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                    <div class="text-red-600 text-sm mt-1">{{ form.name.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Address -->
+            <div>
+                <label for="{{ form.address.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    Complete Address *
+                </label>
+                {{ form.address }}
+                {% if form.address.errors %}
+                    <div class="text-red-600 text-sm mt-1">{{ form.address.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    Description *
+                </label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                    <div class="text-red-600 text-sm mt-1">{{ form.description.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Contact Information -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="{{ form.contact_email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Contact Email *
+                    </label>
+                    {{ form.contact_email }}
+                    {% if form.contact_email.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.contact_email.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.contact_phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Contact Phone *
+                    </label>
+                    {{ form.contact_phone }}
+                    {% if form.contact_phone.errors %}
+                        <div class="text-red-600 text-sm mt-1">{{ form.contact_phone.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- WhatsApp Number -->
+            <div>
+                <label for="{{ form.whatsapp_number.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    WhatsApp Number (Optional)
+                </label>
+                {{ form.whatsapp_number }}
+                {% if form.whatsapp_number.errors %}
+                    <div class="text-red-600 text-sm mt-1">{{ form.whatsapp_number.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Facilities Section -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-3">
+                    Available Facilities
+                </label>
+                <p class="text-gray-600 text-sm mb-4">Select all facilities available at your hostel</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {% for facility_choice in form.facilities %}
+                        <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group">
+                            {{ facility_choice.tag }}
+                            <span class="ml-3 text-sm text-gray-700 group-hover:text-gray-900">
+                                {{ facility_choice.choice_label }}
+                            </span>
+                        </label>
+                    {% endfor %}
+                </div>
+
+                {% if form.facilities.errors %}
+                    <div class="text-red-600 text-sm mt-2">{{ form.facilities.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Status Information -->
+            {% if hostel.is_verified %}
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                        <span class="text-green-800 font-medium">This hostel is verified and live on the platform</span>
+                    </div>
+                </div>
+            {% else %}
+                <div class="bg-yellow-50 p-4 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fas fa-clock text-yellow-500 mr-2"></i>
+                        <span class="text-yellow-800 font-medium">This hostel is pending verification</span>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Room Types Section -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-3">Room Types & Pricing</h3>
+                <p class="text-gray-600 text-sm mb-4">Manage different room types and their pricing for your hostel</p>
+
+                {{ room_formset.management_form }}
+                <div id="room-formset" class="space-y-4">
+                    {% for room_form in room_formset %}
+                        <div class="room-form p-4 border border-gray-200 rounded-lg {% if room_form.DELETE %}bg-red-50 border-red-200{% endif %}">
+                            {% if room_form.DELETE %}
+                                {{ room_form.DELETE.as_hidden }}
+                                <div class="text-red-600 font-medium mb-2">
+                                    <i class="fas fa-trash mr-2"></i>This room type will be deleted
+                                </div>
+                            {% endif %}
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Room Type *</label>
+                                    {{ room_form.type }}
+                                    {% if room_form.type.errors %}
+                                        <div class="text-red-600 text-sm mt-1">{{ room_form.type.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Price (PKR/month) *</label>
+                                    {{ room_form.price }}
+                                    {% if room_form.price.errors %}
+                                        <div class="text-red-600 text-sm mt-1">{{ room_form.price.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Available Rooms *</label>
+                                    {{ room_form.available_rooms }}
+                                    {% if room_form.available_rooms.errors %}
+                                        <div class="text-red-600 text-sm mt-1">{{ room_form.available_rooms.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                {{ room_form.description }}
+                                {% if room_form.description.errors %}
+                                    <div class="text-red-600 text-sm mt-1">{{ room_form.description.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Hidden fields -->
+                            {{ room_form.id }}
+
+                            <!-- Delete button -->
+                            <div class="mt-4 flex justify-end">
+                                {% if not room_form.DELETE.value %}
+                                    <button type="button" onclick="toggleDeleteRoom(this)" class="text-red-600 hover:text-red-800 text-sm">
+                                        <i class="fas fa-trash mr-1"></i>Remove Room Type
+                                    </button>
+                                {% else %}
+                                    <button type="button" onclick="toggleDeleteRoom(this)" class="text-green-600 hover:text-green-800 text-sm">
+                                        <i class="fas fa-undo mr-1"></i>Restore Room Type
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <button type="button" onclick="addRoomForm()" class="mt-4 text-indigo-600 hover:text-indigo-800 text-sm">
+                    <i class="fas fa-plus mr-1"></i>Add Another Room Type
+                </button>
+            </div>
+
+            <!-- Images Section -->
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-3">Hostel Images</h3>
+                <p class="text-gray-600 text-sm mb-4">Add or update images to showcase your hostel</p>
+
+                {{ image_formset.management_form }}
+                <div id="image-formset" class="space-y-4">
+                    {% for image_form in image_formset %}
+                        <div class="image-form p-4 border border-gray-200 rounded-lg {% if image_form.DELETE.value %}bg-red-50 border-red-200{% endif %}">
+                            {% if image_form.DELETE.value %}
+                                {{ image_form.DELETE.as_hidden }}
+                                <div class="text-red-600 font-medium mb-2">
+                                    <i class="fas fa-trash mr-2"></i>This image will be deleted
+                                </div>
+                            {% else %}
+                                {{ image_form.DELETE.as_hidden }}
+                            {% endif %}
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Image</label>
+                                    {% if image_form.instance.image %}
+                                        <div class="mb-2">
+                                            <img src="{{ image_form.instance.image.url }}" alt="Current image" class="w-20 h-20 object-cover rounded">
+                                            <p class="text-xs text-gray-500 mt-1">Current image</p>
+                                        </div>
+                                    {% endif %}
+                                    {{ image_form.image }}
+                                    {% if image_form.image.errors %}
+                                        <div class="text-red-600 text-sm mt-1">{{ image_form.image.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Caption (Optional)</label>
+                                    {{ image_form.caption }}
+                                    {% if image_form.caption.errors %}
+                                        <div class="text-red-600 text-sm mt-1">{{ image_form.caption.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="mt-2">
+                                {{ image_form.is_primary }}
+                                <label class="text-sm text-gray-700">Set as primary image</label>
+                            </div>
+
+                            <!-- Hidden fields -->
+                            {{ image_form.id }}
+
+                            <!-- Delete button -->
+                            <div class="mt-4 flex justify-end">
+                                {% if not image_form.DELETE.value %}
+                                    <button type="button" onclick="toggleDeleteImage(this)" class="text-red-600 hover:text-red-800 text-sm">
+                                        <i class="fas fa-trash mr-1"></i>Remove Image
+                                    </button>
+                                {% else %}
+                                    <button type="button" onclick="toggleDeleteImage(this)" class="text-green-600 hover:text-green-800 text-sm">
+                                        <i class="fas fa-undo mr-1"></i>Restore Image
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <button type="button" onclick="addImageForm()" class="mt-4 text-indigo-600 hover:text-indigo-800 text-sm">
+                    <i class="fas fa-plus mr-1"></i>Add Another Image
+                </button>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex justify-end space-x-4">
+                <a
+                    href="{% url 'hostels:owner_dashboard' %}"
+                    class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                    Cancel
+                </a>
+                <button
+                    type="submit"
+                    class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                    <i class="fas fa-save mr-2"></i>Update Hostel
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="mt-8 bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+        <div class="flex justify-center">
+            <a
+                href="{{ hostel.get_absolute_url }}"
+                class="flex items-center justify-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            >
+                <i class="fas fa-eye mr-2"></i>View Live Listing
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Style form inputs */
+    input[type="text"], input[type="email"], input[type="tel"], textarea, select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #374151;
+        background-color: #ffffff;
+    }
+
+    input[type="text"]:focus, input[type="email"]:focus, input[type="tel"]:focus, textarea:focus, select:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    textarea {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .room-form, .image-form {
+        position: relative;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #374151;
+        background-color: #ffffff;
+    }
+
+    /* Facility checkbox styling */
+    input[type="checkbox"] {
+        width: 1.25rem;
+        height: 1.25rem;
+        border: 2px solid #d1d5db;
+        border-radius: 0.25rem;
+        background-color: #ffffff;
+        cursor: pointer;
+    }
+
+    input[type="checkbox"]:checked {
+        background-color: #6366f1;
+        border-color: #6366f1;
+    }
+
+    input[type="checkbox"]:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+</style>
+
+<script>
+    let roomFormCount = {{ room_formset.total_form_count }};
+    let imageFormCount = {{ image_formset.total_form_count }};
+
+    function toggleDeleteRoom(button) {
+        const roomForm = button.closest('.room-form');
+        const deleteInput = roomForm.querySelector('input[name$="-DELETE"]');
+
+        if (deleteInput.value === 'on' || deleteInput.checked) {
+            deleteInput.value = '';
+            deleteInput.checked = false;
+            roomForm.classList.remove('bg-red-50', 'border-red-200');
+            roomForm.classList.add('border-gray-200');
+            button.innerHTML = '<i class="fas fa-trash mr-1"></i>Remove Room Type';
+            button.className = 'text-red-600 hover:text-red-800 text-sm';
+        } else {
+            deleteInput.value = 'on';
+            deleteInput.checked = true;
+            roomForm.classList.add('bg-red-50', 'border-red-200');
+            roomForm.classList.remove('border-gray-200');
+            button.innerHTML = '<i class="fas fa-undo mr-1"></i>Restore Room Type';
+            button.className = 'text-green-600 hover:text-green-800 text-sm';
+        }
+    }
+
+    function toggleDeleteImage(button) {
+        const imageForm = button.closest('.image-form');
+        const deleteInput = imageForm.querySelector('input[name$="-DELETE"]');
+
+        if (deleteInput.value === 'on' || deleteInput.checked) {
+            deleteInput.value = '';
+            deleteInput.checked = false;
+            imageForm.classList.remove('bg-red-50', 'border-red-200');
+            imageForm.classList.add('border-gray-200');
+            button.innerHTML = '<i class="fas fa-trash mr-1"></i>Remove Image';
+            button.className = 'text-red-600 hover:text-red-800 text-sm';
+        } else {
+            deleteInput.value = 'on';
+            deleteInput.checked = true;
+            imageForm.classList.add('bg-red-50', 'border-red-200');
+            imageForm.classList.remove('border-gray-200');
+            button.innerHTML = '<i class="fas fa-undo mr-1"></i>Restore Image';
+            button.className = 'text-green-600 hover:text-green-800 text-sm';
+        }
+    }
+
+    function addRoomForm() {
+        const formsetContainer = document.getElementById('room-formset');
+        const newForm = document.createElement('div');
+        newForm.className = 'room-form p-4 border border-gray-200 rounded-lg';
+
+        newForm.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Room Type *</label>
+                    <select name="roomtype_set-${roomFormCount}-type" class="form-control">
+                        <option value="">Select room type</option>
+                        <option value="single">Single Room</option>
+                        <option value="double">Double Room</option>
+                        <option value="shared">Shared Room</option>
+                        <option value="dormitory">Dormitory</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Price (PKR/month) *</label>
+                    <input type="number" name="roomtype_set-${roomFormCount}-price" step="0.01" min="0" class="form-control" placeholder="100.00">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Available Rooms *</label>
+                    <input type="number" name="roomtype_set-${roomFormCount}-available_rooms" min="1" class="form-control" placeholder="10">
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea name="roomtype_set-${roomFormCount}-description" class="form-control" rows="3" placeholder="Describe this room type"></textarea>
+            </div>
+
+            <input type="hidden" name="roomtype_set-${roomFormCount}-id" value="">
+
+            <div class="mt-4 flex justify-end">
+                <button type="button" onclick="this.parentElement.parentElement.remove(); updateRoomFormCount(-1)" class="text-red-600 hover:text-red-800 text-sm">
+                    <i class="fas fa-trash mr-1"></i>Remove Room Type
+                </button>
+            </div>
+        `;        formsetContainer.appendChild(newForm);
+        roomFormCount++;
+        updateTotalForms('room');
+    }
+
+    function addImageForm() {
+        const formsetContainer = document.getElementById('image-formset');
+        const newForm = document.createElement('div');
+        newForm.className = 'image-form p-4 border border-gray-200 rounded-lg';
+
+        newForm.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Image</label>
+                    <input type="file" name="hostelimage_set-${imageFormCount}-image" class="form-control" accept="image/*">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Caption (Optional)</label>
+                    <input type="text" name="hostelimage_set-${imageFormCount}-caption" class="form-control" placeholder="Optional caption for this image">
+                </div>
+            </div>
+
+            <div class="mt-2">
+                <input type="checkbox" name="hostelimage_set-${imageFormCount}-is_primary" class="mr-2">
+                <label class="text-sm text-gray-700">Set as primary image</label>
+            </div>
+
+            <input type="hidden" name="hostelimage_set-${imageFormCount}-id" value="">
+
+            <div class="mt-4 flex justify-end">
+                <button type="button" onclick="this.parentElement.parentElement.remove(); updateImageFormCount(-1)" class="text-red-600 hover:text-red-800 text-sm">
+                    <i class="fas fa-trash mr-1"></i>Remove Image
+                </button>
+            </div>
+        `;        formsetContainer.appendChild(newForm);
+        imageFormCount++;
+        updateTotalForms('image');
+    }
+
+    function updateTotalForms(type) {
+        if (type === 'room') {
+            const totalFormsInput = document.querySelector('input[name="roomtype_set-TOTAL_FORMS"]');
+            if (totalFormsInput) {
+                totalFormsInput.value = roomFormCount;
+            }
+        } else if (type === 'image') {
+            const totalFormsInput = document.querySelector('input[name="hostelimage_set-TOTAL_FORMS"]');
+            if (totalFormsInput) {
+                totalFormsInput.value = imageFormCount;
+            }
+        }
+    }
+
+    function updateRoomFormCount(change) {
+        roomFormCount += change;
+        updateTotalForms('room');
+    }
+
+    function updateImageFormCount(change) {
+        imageFormCount += change;
+        updateTotalForms('image');
+    }
+</script>
+{% endblock %}

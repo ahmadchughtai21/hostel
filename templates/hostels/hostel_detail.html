@@ -1,0 +1,847 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ hostel.name }} - HostelHub{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Breadcrumb -->
+    <nav class="flex mb-6" aria-label="Breadcrumb">
+        <ol class="flex items-center space-x-4">
+            <li>
+                <a href="{% url 'hostels:home' %}" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-home"></i>
+                </a>
+            </li>
+            <li>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </li>
+            <li>
+                <a href="{% url 'hostels:hostel_list' %}" class="text-gray-400 hover:text-gray-600">Browse Hostels</a>
+            </li>
+            <li>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </li>
+            <li class="text-gray-900">{{ hostel.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Content -->
+        <div class="lg:col-span-2">
+            <!-- Hostel Images -->
+            <div class="mb-6">
+                {% if images %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {% for image in images|slice:":4" %}
+                            <div class="{% if forloop.first %}md:col-span-2 md:row-span-2{% endif %}">
+                                <div class="w-full h-64 {% if forloop.first %}md:h-96{% endif %} rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity group relative" onclick="openFullscreen('{{ image.image.url }}', '{{ image.caption|default:"Hostel Image" }}')">
+                                    <img
+                                        src="{{ image.image.url }}"
+                                        alt="{{ image.caption|default:"Hostel Image" }}"
+                                        class="w-full h-full object-cover"
+                                    />
+                                    <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
+                                        <i class="fas fa-expand text-white text-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></i>
+                                    </div>
+                                    {% if image.caption %}
+                                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                                            <p class="text-white text-sm">{{ image.caption }}</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    {% if images.count > 4 %}
+                        <button
+                            onclick="showAllImages()"
+                            class="mt-4 text-indigo-600 hover:text-indigo-800 font-medium"
+                        >
+                            View all {{ images.count }} photos
+                        </button>
+                    {% endif %}
+                {% else %}
+                    <!-- Default placeholder when no images -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2 md:row-span-2">
+                            <div class="w-full h-96 bg-gradient-to-r from-blue-400 to-purple-500 rounded-lg flex items-center justify-center">
+                                <div class="text-center text-white">
+                                    <i class="fas fa-home text-6xl mb-4"></i>
+                                    <p class="text-lg font-medium">{{ hostel.name }}</p>
+                                    <p class="text-sm opacity-90">Images coming soon</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Hostel Info -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <div class="flex justify-between items-start mb-6">
+                    <div class="flex-1">
+                        <h1 class="text-3xl font-bold text-gray-900 mb-3">{{ hostel.name }}</h1>
+
+                        <!-- Overall Rating Display -->
+                        <div class="flex items-center mb-4">
+                            {% if hostel.average_rating %}
+                                <div class="flex items-center bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3">
+                                    <div class="flex text-yellow-400 text-xl mr-3">
+                                        {{ hostel.rating_stars_display|safe }}
+                                    </div>
+                                    <div class="flex items-baseline">
+                                        <span class="text-2xl font-bold text-gray-900">{{ hostel.average_rating }}</span>
+                                        <span class="text-gray-600 ml-2">({{ hostel.rating_count }} review{{ hostel.rating_count|pluralize }})</span>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div class="flex items-center bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+                                    <div class="flex text-gray-300 text-xl mr-3">
+                                        <i class="far fa-star"></i>
+                                        <i class="far fa-star"></i>
+                                        <i class="far fa-star"></i>
+                                        <i class="far fa-star"></i>
+                                        <i class="far fa-star"></i>
+                                    </div>
+                                    <span class="text-gray-500">No reviews yet</span>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Status Badges -->
+                        <div class="flex flex-wrap gap-2">
+                            {% if hostel.is_featured %}
+                                <span class="inline-flex items-center bg-yellow-100 text-yellow-800 text-sm px-3 py-1 rounded-full">
+                                    <i class="fas fa-star mr-1"></i>Featured
+                                </span>
+                            {% endif %}
+                            {% if hostel.is_verified %}
+                                <span class="inline-flex items-center bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">
+                                    <i class="fas fa-check-circle mr-1"></i>Verified Hostel
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if user.is_authenticated and user.role == 'student' %}
+                        <div class="flex gap-2">
+                            {% if is_favorite %}
+                                <form method="POST" action="{% url 'hostels:remove_from_favorites' hostel.slug %}">
+                                    {% csrf_token %}
+                                    <button
+                                        type="submit"
+                                        class="bg-red-100 text-red-600 hover:bg-red-200 px-4 py-2 rounded-lg transition-colors"
+                                    >
+                                        <i class="fas fa-heart mr-2"></i>Remove from Favorites
+                                    </button>
+                                </form>
+                            {% else %}
+                                <form method="POST" action="{% url 'hostels:add_to_favorites' hostel.slug %}">
+                                    {% csrf_token %}
+                                    <button
+                                        type="submit"
+                                        class="bg-gray-100 text-gray-600 hover:bg-gray-200 px-4 py-2 rounded-lg transition-colors"
+                                    >
+                                        <i class="far fa-heart mr-2"></i>Add to Favorites
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Address -->
+                <div class="flex items-start mb-4">
+                    <i class="fas fa-map-marker-alt text-gray-400 mr-3 mt-1"></i>
+                    <div>
+                        <p class="text-gray-600 mb-2">{{ hostel.address }}</p>
+
+                        <!-- Landmark Information -->
+                        {% if hostel.nearby_landmark %}
+                            <div class="bg-blue-50 p-3 rounded-lg mb-2">
+                                <p class="text-blue-800 font-medium text-sm">
+                                    <i class="fas fa-university mr-2"></i>{{ hostel.landmark_distance }}km from {{ hostel.nearby_landmark }}
+                                </p>
+                            </div>
+                        {% endif %}
+
+                        <div class="flex gap-3">
+                            {% if hostel.google_location_link %}
+                                <a
+                                    href="{{ hostel.google_location_link }}"
+                                    target="_blank"
+                                    class="text-indigo-600 hover:text-indigo-800 text-sm"
+                                >
+                                    <i class="fas fa-external-link-alt mr-1"></i>Open in Google Maps
+                                </a>
+                            {% endif %}
+                            {% if hostel.latitude and hostel.longitude %}
+                                <button
+                                    onclick="showMap()"
+                                    class="text-indigo-600 hover:text-indigo-800 text-sm"
+                                >
+                                    <i class="fas fa-map mr-1"></i>View on Map
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold mb-3">About This Hostel</h3>
+                    <p class="text-gray-600 leading-relaxed">{{ hostel.description|linebreaks }}</p>
+                </div>
+
+                <!-- Contact Reveals Counter (for owner/admin) -->
+                {% if user == hostel.owner or user.role == 'admin' %}
+                    <div class="bg-blue-50 p-4 rounded-lg mb-6">
+                        <h4 class="font-semibold text-blue-900 mb-2">Analytics</h4>
+                        <p class="text-blue-700">Contact information has been revealed {{ hostel.contact_reveals_count }} time{{ hostel.contact_reveals_count|pluralize }}</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Room Types -->
+            {% if room_types %}
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Available Room Types</h3>
+                    <div class="space-y-4">
+                        {% for room_type in room_types %}
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-900">{{ room_type.get_type_display }}</h4>
+                                        {% if room_type.description %}
+                                            <p class="text-gray-600 text-sm mt-1">{{ room_type.description }}</p>
+                                        {% endif %}
+                                        <p class="text-sm text-gray-500 mt-2">
+                                            Available rooms: {{ room_type.available_rooms }}
+                                        </p>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-2xl font-bold text-indigo-600">₨{{ room_type.price }}</div>
+                                        <div class="text-sm text-gray-500">per month</div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Facilities -->
+            {% if facilities %}
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h3 class="text-lg font-semibold mb-4">Facilities & Amenities</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {% for hf in facilities %}
+                            <div class="flex items-center">
+                                <i class="fas fa-check text-green-500 mr-2"></i>
+                                <span class="text-gray-700">{{ hf.facility.name }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Reviews & Rating Section -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h3 class="text-xl font-semibold mb-6">Reviews & Ratings</h3>
+
+                {% if hostel.average_rating %}
+                    <!-- Rating Summary -->
+                    <div class="grid md:grid-cols-2 gap-6 mb-8">
+                        <div class="text-center md:text-left">
+                            <div class="flex items-center justify-center md:justify-start mb-2">
+                                <span class="text-4xl font-bold text-gray-900 mr-3">{{ hostel.average_rating }}</span>
+                                <div>
+                                    <div class="flex text-yellow-400 text-xl mb-1">
+                                        {{ hostel.rating_stars_display|safe }}
+                                    </div>
+                                    <p class="text-gray-600 text-sm">{{ hostel.rating_count }} review{{ hostel.rating_count|pluralize }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <h4 class="font-medium text-gray-900 mb-3">Rating Distribution</h4>
+                            {% for rating, data in hostel.rating_distribution.items %}
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm text-gray-600 w-6">{{ rating }}</span>
+                                    <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                    <div class="flex-1 bg-gray-200 rounded-full h-2">
+                                        <div class="bg-yellow-400 h-2 rounded-full" style="width: {{ data.percentage }}%"></div>
+                                    </div>
+                                    <span class="text-sm text-gray-600 w-8">{{ data.count }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Add Review Form (for authenticated students) -->
+                {% if user.is_authenticated and user.role == 'student' %}
+                    {% if not user_has_reviewed %}
+                        <div class="bg-gray-50 rounded-lg p-6 mb-6">
+                            <h4 class="font-semibold text-gray-900 mb-4">Write a Review</h4>
+                            <form id="reviewForm" method="POST" action="{% url 'hostels:add_review' hostel.slug %}">
+                                {% csrf_token %}
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Rating</label>
+                                    <div class="flex items-center gap-1" id="ratingStars">
+                                        {% for i in "12345" %}
+                                            <button type="button" class="rating-star text-2xl text-gray-300 hover:text-yellow-400 transition-colors" data-rating="{{ forloop.counter }}">
+                                                <i class="fas fa-star"></i>
+                                            </button>
+                                        {% endfor %}
+                                    </div>
+                                    <input type="hidden" name="rating" id="ratingInput" required>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="reviewText" class="block text-sm font-medium text-gray-700 mb-2">Your Review</label>
+                                    <textarea
+                                        id="reviewText"
+                                        name="review_text"
+                                        rows="4"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                        placeholder="Share your experience with this hostel..."
+                                        required
+                                    ></textarea>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    class="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 transition-colors"
+                                >
+                                    Submit Review
+                                </button>
+                            </form>
+                        </div>
+                    {% elif user_review_pending %}
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                            <div class="flex items-center">
+                                <i class="fas fa-clock text-yellow-600 mr-2"></i>
+                                <p class="text-yellow-800">Your review is pending approval by the admin.</p>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <i class="fas fa-check text-green-600 mr-2"></i>
+                                    <p class="text-green-800">Thank you for your review!</p>
+                                </div>
+                                <button
+                                    onclick="editReview()"
+                                    class="text-green-700 hover:text-green-900 text-sm font-medium"
+                                >
+                                    Edit Review
+                                </button>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% elif not user.is_authenticated %}
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                        <div class="flex items-center">
+                            <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                            <p class="text-blue-800">
+                                <a href="{% url 'hostels:login' %}" class="font-medium hover:underline">Sign in</a> to write a review for this hostel.
+                            </p>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Individual Reviews -->
+                {% if reviews %}
+                    <div class="space-y-6">
+                        <h4 class="font-semibold text-gray-900">Customer Reviews</h4>
+                        {% for review in reviews|slice:":5" %}
+                            <div class="border-b border-gray-200 pb-6 last:border-b-0">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div class="flex items-center">
+                                        <div class="flex text-yellow-400 text-sm mr-3">
+                                            {% for i in "12345" %}
+                                                <i class="fas fa-star{% if forloop.counter > review.rating %} text-gray-300{% endif %}"></i>
+                                            {% endfor %}
+                                        </div>
+                                        <div>
+                                            <span class="font-medium text-gray-900">{{ review.user.get_full_name|default:review.user.username }}</span>
+                                            <p class="text-gray-500 text-sm">{{ review.created_at|date:"M j, Y" }}</p>
+                                        </div>
+                                    </div>
+
+                                    {% if user.is_authenticated and review.user == user %}
+                                        <div class="flex items-center gap-2">
+                                            <button
+                                                onclick="editReview({{ review.id }})"
+                                                class="text-indigo-600 hover:text-indigo-800 text-sm"
+                                            >
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button
+                                                onclick="deleteReview({{ review.id }})"
+                                                class="text-red-600 hover:text-red-800 text-sm"
+                                            >
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <p class="text-gray-700 leading-relaxed">{{ review.review_text }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    {% if reviews.count > 5 %}
+                        <button
+                            onclick="loadMoreReviews()"
+                            class="mt-6 w-full text-center py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                        >
+                            Load More Reviews ({{ reviews.count|add:"-5" }} remaining)
+                        </button>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-comment-slash text-4xl mb-3"></i>
+                        <p>No reviews yet. Be the first to review this hostel!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="lg:col-span-1">
+            <div class="sticky top-8 space-y-6">
+                <!-- Contact Card -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-semibold mb-4">Contact Hostel Owner</h3>
+
+                    <!-- Owner Info -->
+                    <div class="flex items-center mb-4">
+                        {% if hostel.owner.profile_picture %}
+                            <img
+                                src="{{ hostel.owner.profile_picture.url }}"
+                                alt="{{ hostel.owner.get_full_name|default:hostel.owner.username }}"
+                                class="w-12 h-12 rounded-full object-cover mr-3"
+                            >
+                        {% else %}
+                            <div class="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center mr-3">
+                                <i class="fas fa-user text-gray-600"></i>
+                            </div>
+                        {% endif %}
+                        <div>
+                            <p class="font-semibold text-gray-900">
+                                {{ hostel.owner.get_full_name|default:hostel.owner.username }}
+                            </p>
+                            <p class="text-sm text-gray-500">Hostel Owner</p>
+                        </div>
+                    </div>
+
+                    <!-- Contact Button -->
+                    <button
+                        onclick="showContact('{{ hostel.slug }}')"
+                        class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors mb-3"
+                    >
+                        <i class="fas fa-phone mr-2"></i>Show Contact Info
+                    </button>
+
+                    <!-- Additional Info -->
+                    <div class="text-sm text-gray-600 space-y-2">
+                        <p><i class="fas fa-calendar-alt mr-2"></i>Listed {{ hostel.created_at|date:"M j, Y" }}</p>
+                        <p><i class="fas fa-eye mr-2"></i>{{ hostel.contact_reveals_count }} contact reveal{{ hostel.contact_reveals_count|pluralize }}</p>
+                    </div>
+
+                    <!-- Report Button -->
+                    <button
+                        onclick="reportHostel()"
+                        class="w-full mt-4 text-red-600 hover:text-red-800 text-sm"
+                    >
+                        <i class="fas fa-flag mr-1"></i>Report this listing
+                    </button>
+                </div>
+
+                <!-- Quick Facts -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold mb-4">Quick Facts</h3>
+                <div class="space-y-3 text-sm">
+                    {% if min_price and max_price %}
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Price Range:</span>
+                            <span class="font-medium">
+                                {% if min_price == max_price %}
+                                    ₨{{ min_price }}/month
+                                {% else %}
+                                    ₨{{ min_price }} - ₨{{ max_price }}/month
+                                {% endif %}
+                            </span>
+                        </div>
+                    {% endif %}
+
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Room Types:</span>
+                        <span class="font-medium">{{ room_types.count }}</span>
+                    </div>
+
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Facilities:</span>
+                        <span class="font-medium">{{ facilities.count }}</span>
+                    </div>
+
+                    {% if reviews %}
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Reviews:</span>
+                            <span class="font-medium">{{ reviews.count }}</span>
+                        </div>
+                    {% endif %}
+
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Status:</span>
+                        <span class="font-medium {% if hostel.is_verified %}text-green-600{% else %}text-yellow-600{% endif %}">
+                            {% if hostel.is_verified %}Verified{% else %}Pending Verification{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div id="image-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="relative max-w-4xl max-h-full">
+            <button
+                onclick="closeImageModal()"
+                class="absolute top-4 right-4 text-white hover:text-gray-300 text-2xl z-10"
+            >
+                <i class="fas fa-times"></i>
+            </button>
+            <img id="modal-image" src="" alt="" class="max-w-full max-h-full object-contain">
+        </div>
+    </div>
+</div>
+
+<!-- Map Modal -->
+<div id="map-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg max-w-2xl w-full p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold">Location</h3>
+                <button onclick="closeMapModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="h-64 bg-gray-200 rounded-lg flex items-center justify-center">
+                <p class="text-gray-600">Map integration would be shown here</p>
+            </div>
+            <p class="text-sm text-gray-600 mt-2">{{ hostel.address }}</p>
+        </div>
+    </div>
+</div>
+
+<!-- Gallery Modal -->
+<div id="gallery-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg max-w-4xl w-full max-h-full overflow-auto p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-semibold">All Photos ({{ images.count }})</h3>
+                <button onclick="closeGalleryModal()" class="text-gray-500 hover:text-gray-700 text-xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="gallery-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Images will be loaded here by JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Fullscreen Modal -->
+<div id="fullscreen-modal" class="fixed inset-0 bg-black hidden z-60">
+    <div class="relative w-full h-full flex items-center justify-center p-4">
+        <button
+            onclick="closeFullscreen()"
+            class="absolute top-4 right-4 text-white hover:text-gray-300 text-3xl z-10 bg-black bg-opacity-50 rounded-full w-12 h-12 flex items-center justify-center"
+        >
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="max-w-full max-h-full flex flex-col items-center">
+            <img id="fullscreen-image" src="" alt="" class="max-w-full max-h-full object-contain">
+            <p id="fullscreen-caption" class="text-white text-center mt-4 px-4 text-lg"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openImageModal(imageUrl) {
+        document.getElementById('modal-image').src = imageUrl;
+        document.getElementById('image-modal').classList.remove('hidden');
+    }
+
+    function closeImageModal() {
+        document.getElementById('image-modal').classList.add('hidden');
+    }
+
+    function showMap() {
+        document.getElementById('map-modal').classList.remove('hidden');
+    }
+
+    function closeMapModal() {
+        document.getElementById('map-modal').classList.add('hidden');
+    }
+
+    function reportHostel() {
+        // This would open a report form modal
+        alert('Report functionality would be implemented here');
+    }
+
+    function showAllImages() {
+        // Show all images gallery modal
+        const modal = document.getElementById('gallery-modal');
+        const container = document.getElementById('gallery-container');
+        container.innerHTML = '';
+
+        {% if images %}
+            const images = [
+                {% for image in images %}
+                {
+                    url: '{{ image.image.url }}',
+                    caption: '{{ image.caption|default:"Hostel Image"|escapejs }}'
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ];
+
+            images.forEach((img, index) => {
+                const imgDiv = document.createElement('div');
+                imgDiv.className = 'cursor-pointer hover:opacity-90 transition-opacity';
+                imgDiv.innerHTML = `
+                    <img src="${img.url}" alt="${img.caption}" class="w-full h-48 object-cover rounded-lg" onclick="openFullscreen('${img.url}', '${img.caption}')">
+                    ${img.caption ? `<p class="text-sm text-gray-600 mt-2">${img.caption}</p>` : ''}
+                `;
+                container.appendChild(imgDiv);
+            });
+        {% endif %}
+
+        modal.classList.remove('hidden');
+    }
+
+    function closeGalleryModal() {
+        document.getElementById('gallery-modal').classList.add('hidden');
+    }
+
+    function openFullscreen(imageUrl, caption) {
+        console.log('Opening fullscreen for:', imageUrl);
+        const modal = document.getElementById('fullscreen-modal');
+        const img = document.getElementById('fullscreen-image');
+        const captionElement = document.getElementById('fullscreen-caption');
+
+        // Show loading state
+        img.style.opacity = '0.5';
+        img.src = imageUrl;
+        img.alt = caption || 'Hostel Image';
+        captionElement.textContent = caption || 'Hostel Image';
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+
+        // Remove loading state when image loads
+        img.onload = function() {
+            img.style.opacity = '1';
+        };
+    }
+
+    function closeFullscreen() {
+        document.getElementById('fullscreen-modal').classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+
+    // Close modals when clicking outside
+    document.getElementById('image-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeImageModal();
+        }
+    });
+
+    document.getElementById('map-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeMapModal();
+        }
+    });
+
+    document.getElementById('gallery-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeGalleryModal();
+        }
+    });
+
+    document.getElementById('fullscreen-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeFullscreen();
+        }
+    });
+
+    // ESC key to close modals, Arrow keys for navigation in fullscreen
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeFullscreen();
+            closeGalleryModal();
+            closeImageModal();
+            closeMapModal();
+        }
+    });
+
+    // Rating System Functions
+    let selectedRating = 0;
+
+    // Handle star rating selection
+    document.querySelectorAll('.rating-star').forEach(star => {
+        star.addEventListener('click', function() {
+            selectedRating = parseInt(this.dataset.rating);
+            updateStarDisplay();
+            document.getElementById('ratingInput').value = selectedRating;
+        });
+
+        star.addEventListener('mouseover', function() {
+            const hoverRating = parseInt(this.dataset.rating);
+            highlightStars(hoverRating);
+        });
+    });
+
+    // Reset stars on mouse leave
+    document.getElementById('ratingStars')?.addEventListener('mouseleave', function() {
+        updateStarDisplay();
+    });
+
+    function highlightStars(rating) {
+        document.querySelectorAll('.rating-star').forEach((star, index) => {
+            if (index < rating) {
+                star.classList.add('text-yellow-400');
+                star.classList.remove('text-gray-300');
+            } else {
+                star.classList.add('text-gray-300');
+                star.classList.remove('text-yellow-400');
+            }
+        });
+    }
+
+    function updateStarDisplay() {
+        highlightStars(selectedRating);
+    }
+
+    // Review submission
+    document.getElementById('reviewForm')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        if (!selectedRating) {
+            alert('Please select a rating before submitting your review.');
+            return;
+        }
+
+        const formData = new FormData(this);
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
+
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showMessage('Review submitted successfully! It will be visible after admin approval.', 'success');
+                location.reload(); // Reload to show pending status
+            } else {
+                showMessage(data.error || 'Failed to submit review. Please try again.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('An error occurred. Please try again.', 'error');
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+        });
+    });
+
+    // Edit review function
+    function editReview(reviewId) {
+        // Show edit form - you can implement this based on your UI needs
+        showMessage('Edit review functionality coming soon!', 'info');
+    }
+
+    // Delete review function
+    function deleteReview(reviewId) {
+        if (confirm('Are you sure you want to delete this review?')) {
+            fetch(`/hostels/reviews/${reviewId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('Review deleted successfully!', 'success');
+                    location.reload();
+                } else {
+                    showMessage(data.error || 'Failed to delete review.', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('An error occurred. Please try again.', 'error');
+            });
+        }
+    }
+
+    // Load more reviews function
+    function loadMoreReviews() {
+        // Implementation for loading more reviews via AJAX
+        showMessage('Load more reviews functionality coming soon!', 'info');
+    }
+
+    // Utility function to show messages
+    function showMessage(message, type = 'info') {
+        const colors = {
+            success: 'bg-green-50 border-green-200 text-green-800',
+            error: 'bg-red-50 border-red-200 text-red-800',
+            info: 'bg-blue-50 border-blue-200 text-blue-800',
+            warning: 'bg-yellow-50 border-yellow-200 text-yellow-800'
+        };
+
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `fixed top-4 right-4 z-50 p-4 border rounded-lg ${colors[type]} transition-all duration-300`;
+        messageDiv.innerHTML = `
+            <div class="flex items-center justify-between">
+                <span>${message}</span>
+                <button onclick="this.parentElement.parentElement.remove()" class="ml-4 text-lg">&times;</button>
+            </div>
+        `;
+
+        document.body.appendChild(messageDiv);
+
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (messageDiv.parentElement) {
+                messageDiv.remove();
+            }
+        }, 5000);
+    }
+
+    // Initialize page
+    console.log('Hostel detail page loaded with rating and review functionality');
+</script>
+{% endblock %}

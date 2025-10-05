@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+
+{% block title %}HostelHub - Find Your Perfect Hostel{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="bg-gradient-primary text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div class="text-center">
+            <h1 class="text-4xl md:text-6xl font-bold mb-6">
+                Find Your Perfect Hostel
+            </h1>
+            <p class="text-xl md:text-2xl mb-8 opacity-90">
+                Discover verified hostels, connect with owners, and book your ideal accommodation
+            </p>
+
+            <!-- Search Form -->
+            <div class="max-w-2xl mx-auto">
+                <form method="GET" action="{% url 'hostels:hostel_list' %}" class="flex flex-col md:flex-row gap-4">
+                    <div class="flex-1">
+                        <input
+                            type="text"
+                            name="q"
+                            placeholder="Enter location, university, or hostel name..."
+                            class="w-full px-6 py-4 text-gray-900 rounded-lg focus:outline-none focus:ring-4 focus:ring-white focus:ring-opacity-30"
+                        >
+                    </div>
+                    <button
+                        type="submit"
+                        class="bg-white text-indigo-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+                    >
+                        <i class="fas fa-search mr-2"></i>Search
+                    </button>
+                </form>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
+                <div class="text-center">
+                    <div class="text-3xl font-bold">500+</div>
+                    <div class="opacity-90">Verified Hostels</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold">1000+</div>
+                    <div class="opacity-90">Happy Students</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold">50+</div>
+                    <div class="opacity-90">Cities Covered</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works -->
+<div class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">How It Works</h2>
+            <p class="text-xl text-gray-600">Simple steps to find your perfect hostel</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="text-center">
+                <div class="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-search text-2xl text-indigo-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Search & Filter</h3>
+                <p class="text-gray-600">Browse hostels by location, price, facilities, and room types</p>
+            </div>
+
+            <div class="text-center">
+                <div class="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-eye text-2xl text-indigo-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">View Details</h3>
+                <p class="text-gray-600">Check photos, amenities, reviews, and exact location</p>
+            </div>
+
+            <div class="text-center">
+                <div class="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-phone text-2xl text-indigo-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Contact Owner</h3>
+                <p class="text-gray-600">Get contact details and arrange your visit or booking</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Featured Hostels -->
+{% if featured_hostels %}
+<div class="py-16 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Featured Hostels</h2>
+            <p class="text-xl text-gray-600">Discover top-rated hostels in popular locations</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {% for hostel in featured_hostels %}
+            <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow hover-scale">
+                <div class="relative">
+                    {% if hostel.images.first %}
+                        <img src="{{ hostel.images.first.image.url }}" alt="{{ hostel.name }}" class="w-full h-48 object-cover rounded-t-lg">
+                    {% else %}
+                        <div class="w-full h-48 bg-gray-200 rounded-t-lg flex items-center justify-center">
+                            <i class="fas fa-home text-4xl text-gray-400"></i>
+                        </div>
+                    {% endif %}
+
+                    <!-- Status Badges -->
+                    <div class="absolute top-3 right-3 space-y-2">
+                        {% if hostel.is_featured %}
+                            <span class="block bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">
+                                <i class="fas fa-star mr-1"></i>Featured
+                            </span>
+                        {% endif %}
+                        {% if hostel.is_verified %}
+                            <span class="block bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                                <i class="fas fa-check-circle mr-1"></i>Verified
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="p-6">
+                    <div class="mb-2">
+                        <h3 class="text-xl font-semibold text-gray-900">{{ hostel.name }}</h3>
+                    </div>
+
+                    <p class="text-gray-600 mb-2">
+                        <i class="fas fa-map-marker-alt mr-1"></i>{{ hostel.address|truncatewords:8 }}
+                    </p>
+
+                    <!-- Landmark Information -->
+                    {% if hostel.nearby_landmark %}
+                        <p class="text-sm text-blue-600 mb-2">
+                            <i class="fas fa-university mr-1"></i>{{ hostel.landmark_distance }}km from {{ hostel.nearby_landmark|truncatewords:3 }}
+                        </p>
+                    {% endif %}
+
+                    {% if hostel.min_price %}
+                        <div class="text-lg font-bold text-indigo-600 mb-4">
+                            From ₨{{ hostel.min_price }}/month
+                        </div>
+                    {% endif %}
+
+                    <!-- Facilities -->
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        {% for hf in hostel.hostel_facilities.all|slice:":3" %}
+                            <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
+                                {{ hf.facility.name }}
+                            </span>
+                        {% endfor %}
+                        {% if hostel.hostel_facilities.count > 3 %}
+                            <span class="text-gray-500 text-xs">+{{ hostel.hostel_facilities.count|add:"-3" }} more</span>
+                        {% endif %}
+                    </div>
+
+                    <a href="{{ hostel.get_absolute_url }}" class="block w-full text-center bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                        View Details
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-12">
+            <a href="{% url 'hostels:hostel_list' %}" class="bg-indigo-600 text-white px-8 py-3 rounded-lg hover:bg-indigo-700 transition-colors">
+                View All Hostels
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- For Owners Section -->
+<div class="py-16 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-900 mb-6">List Your Hostel</h2>
+                <p class="text-lg text-gray-600 mb-6">
+                    Join thousands of hostel owners who trust HostelHub to connect with students and travelers.
+                </p>
+
+                <ul class="space-y-4 mb-6">
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-3"></i>
+                        <span>Reach thousands of potential tenants</span>
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-3"></i>
+                        <span>Easy-to-use dashboard and analytics</span>
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-3"></i>
+                        <span>Featured listing options available</span>
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-check text-green-500 mr-3"></i>
+                        <span>24/7 customer support</span>
+                    </li>
+                </ul>
+
+                <!-- Pricing Info -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <h4 class="font-semibold text-blue-800 mb-2">Simple Monthly Pricing</h4>
+                    <p class="text-blue-700 text-sm">
+                        <strong>₨8,999/month</strong> - Includes hostel verification, listing management, and customer support.
+                        Payment is processed externally after listing submission.
+                    </p>
+                </div>
+
+                <a href="{% url 'hostels:register' %}" class="bg-indigo-600 text-white px-8 py-3 rounded-lg hover:bg-indigo-700 transition-colors inline-block">
+                    Get Started Today
+                </a>
+            </div>
+
+            <div class="bg-gray-100 rounded-lg p-8">
+                <div class="bg-white rounded-lg p-6 shadow-sm">
+                    <h3 class="text-xl font-semibold mb-4">Why Choose HostelHub?</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="bg-indigo-100 p-2 rounded-full mr-4">
+                                <i class="fas fa-users text-indigo-600"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">Verified Users</h4>
+                                <p class="text-gray-600 text-sm">All users are verified for safety and trust</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="bg-indigo-100 p-2 rounded-full mr-4">
+                                <i class="fas fa-chart-line text-indigo-600"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">Analytics & Insights</h4>
+                                <p class="text-gray-600 text-sm">Track views, contacts, and optimize your listing</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="bg-indigo-100 p-2 rounded-full mr-4">
+                                <i class="fas fa-mobile-alt text-indigo-600"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold">Mobile Optimized</h4>
+                                <p class="text-gray-600 text-sm">Your listings look great on all devices</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

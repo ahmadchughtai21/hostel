@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{% block title %}Hostel Platform{% endblock %}</title>
+
+    <!-- Tailwind CSS CDN (for development) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Custom styles -->
+    <style>
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .hover-scale:hover {
+            transform: scale(1.02);
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="h-full bg-gray-50">
+    <div class="min-h-full">
+        <!-- Navigation -->
+        <nav class="bg-white shadow-sm border-b">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <!-- Logo -->
+                    <div class="flex items-center">
+                        <a href="{% url 'hostels:home' %}" class="text-2xl font-bold text-indigo-600">
+                            <i class="fas fa-home mr-2"></i>HostelHub
+                        </a>
+                    </div>
+
+                    <!-- Search Bar (Desktop) -->
+                    <div class="hidden md:block flex-1 max-w-lg mx-8">
+                        <form method="GET" action="{% url 'hostels:hostel_list' %}" class="relative">
+                            <input
+                                type="text"
+                                name="q"
+                                placeholder="Search hostels, locations..."
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            >
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        </form>
+                    </div>
+
+                    <!-- Navigation Links (Desktop) -->
+                    <div class="hidden md:flex items-center space-x-4">
+                        <a href="{% url 'hostels:hostel_list' %}" class="text-gray-700 hover:text-indigo-600">Browse</a>
+
+                        {% if user.is_authenticated %}
+                            {% if user.role == 'owner' %}
+                                <a href="{% url 'hostels:owner_dashboard' %}" class="text-gray-700 hover:text-indigo-600">Dashboard</a>
+                            {% elif user.role == 'admin' %}
+                                <a href="{% url 'hostels:admin_dashboard' %}" class="text-gray-700 hover:text-indigo-600">Admin</a>
+                            {% else %}
+                                <a href="{% url 'hostels:favorites' %}" class="text-gray-700 hover:text-indigo-600">
+                                    <i class="fas fa-heart"></i> Favorites
+                                </a>
+                            {% endif %}
+
+                            <div class="relative" id="user-dropdown">
+                                <button onclick="toggleDropdown()" class="flex items-center text-gray-700 hover:text-indigo-600">
+                                    <i class="fas fa-user-circle mr-1"></i>
+                                    {{ user.username }}
+                                    <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                                </button>
+
+                                <!-- Dropdown Menu -->
+                                <div id="dropdown-menu" class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 hidden">
+                                    <a href="{% url 'hostels:profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                        <i class="fas fa-user mr-2"></i>Profile
+                                    </a>
+                                    <form method="post" action="{% url 'hostels:logout' %}" class="block">
+                                        {% csrf_token %}
+                                        <button type="submit" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% else %}
+                            <a href="{% url 'hostels:login' %}" class="text-gray-700 hover:text-indigo-600">Login</a>
+                            <a href="{% url 'hostels:register' %}" class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                                Sign Up
+                            </a>
+                        {% endif %}
+                    </div>
+
+                    <!-- Mobile Menu Button -->
+                    <div class="md:hidden">
+                        <button onclick="toggleMobileMenu()" class="text-gray-700 hover:text-indigo-600">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mobile Menu -->
+                <div id="mobile-menu" class="md:hidden hidden border-t border-gray-200 pt-4 pb-3">
+                    <div class="space-y-1">
+                        <a href="{% url 'hostels:hostel_list' %}" class="block px-3 py-2 text-gray-700 hover:bg-gray-50">Browse</a>
+
+                        {% if user.is_authenticated %}
+                            {% if user.role == 'owner' %}
+                                <a href="{% url 'hostels:owner_dashboard' %}" class="block px-3 py-2 text-gray-700 hover:bg-gray-50">Dashboard</a>
+                            {% elif user.role == 'admin' %}
+                                <a href="{% url 'hostels:admin_dashboard' %}" class="block px-3 py-2 text-gray-700 hover:bg-gray-50">Admin</a>
+                            {% else %}
+                                <a href="{% url 'hostels:favorites' %}" class="block px-3 py-2 text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-heart mr-2"></i>Favorites
+                                </a>
+                            {% endif %}
+
+                            <a href="{% url 'hostels:profile' %}" class="block px-3 py-2 text-gray-700 hover:bg-gray-50">
+                                <i class="fas fa-user mr-2"></i>Profile
+                            </a>
+                            <form method="post" action="{% url 'hostels:logout' %}" class="block">
+                                {% csrf_token %}
+                                <button type="submit" class="w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-50">
+                                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                                </button>
+                            </form>
+                        {% else %}
+                            <a href="{% url 'hostels:login' %}" class="block px-3 py-2 text-gray-700 hover:bg-gray-50">Login</a>
+                            <a href="{% url 'hostels:register' %}" class="block px-3 py-2 bg-indigo-600 text-white rounded mx-3">Sign Up</a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Mobile Search Bar -->
+                <div class="md:hidden pb-3">
+                    <form method="GET" action="{% url 'hostels:hostel_list' %}" class="relative">
+                        <input
+                            type="text"
+                            name="q"
+                            placeholder="Search hostels, locations..."
+                            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    </form>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Messages -->
+        {% if messages %}
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+                {% for message in messages %}
+                    {% if message.tags == 'error' %}
+                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 relative">
+                            {{ message }}
+                            <button class="absolute top-0 bottom-0 right-0 px-4 py-3" onclick="this.parentElement.style.display='none'">
+                                <span class="text-2xl">&times;</span>
+                            </button>
+                        </div>
+                    {% elif message.tags == 'success' %}
+                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 relative">
+                            {{ message }}
+                            <button class="absolute top-0 bottom-0 right-0 px-4 py-3" onclick="this.parentElement.style.display='none'">
+                                <span class="text-2xl">&times;</span>
+                            </button>
+                        </div>
+                    {% elif message.tags == 'warning' %}
+                        <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4 relative">
+                            {{ message }}
+                            <button class="absolute top-0 bottom-0 right-0 px-4 py-3" onclick="this.parentElement.style.display='none'">
+                                <span class="text-2xl">&times;</span>
+                            </button>
+                        </div>
+                    {% else %}
+                        <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-4 relative">
+                            {{ message }}
+                            <button class="absolute top-0 bottom-0 right-0 px-4 py-3" onclick="this.parentElement.style.display='none'">
+                                <span class="text-2xl">&times;</span>
+                            </button>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Main Content -->
+        <main>
+            {% block content %}
+            {% endblock %}
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white mt-16">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4">HostelHub</h3>
+                        <p class="text-gray-300">Find the perfect hostel for your stay. Connect with verified hosts and discover amazing accommodations.</p>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-4">For Students</h4>
+                        <ul class="space-y-2 text-gray-300">
+                            <li><a href="{% url 'hostels:hostel_list' %}" class="hover:text-white">Browse Hostels</a></li>
+                            <li><a href="#" class="hover:text-white">Search by Location</a></li>
+                            <li><a href="#" class="hover:text-white">Reviews & Ratings</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-4">For Owners</h4>
+                        <ul class="space-y-2 text-gray-300">
+                            <li><a href="{% url 'hostels:register' %}" class="hover:text-white">List Your Hostel</a></li>
+                            <li><a href="#" class="hover:text-white">Manage Listings</a></li>
+                            <li><a href="#" class="hover:text-white">Analytics</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-4">Support</h4>
+                        <ul class="space-y-2 text-gray-300">
+                            <li><a href="#" class="hover:text-white">Help Center</a></li>
+                            <li><a href="#" class="hover:text-white">Contact Us</a></li>
+                            <li><a href="#" class="hover:text-white">Terms of Service</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="mt-8 pt-8 border-t border-gray-700 text-center text-gray-300">
+                    <p>&copy; 2025 HostelHub. All rights reserved. Made  by Ahmad Chughtai</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Contact Modal -->
+    <div id="contact-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-lg max-w-md w-full p-6">
+                <h3 class="text-lg font-semibold mb-4">Contact Information</h3>
+                <div id="contact-content">
+                    <!-- Contact info will be loaded here -->
+                </div>
+                <div class="mt-6 flex justify-end">
+                    <button onclick="closeContactModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showContact(slug) {
+            fetch(`/hostels/${slug}/contact/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                const content = `
+                    <div class="space-y-4">
+                        <div class="bg-green-50 p-3 rounded-lg">
+                            <p class="text-green-800 text-sm">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Contact information revealed successfully!
+                            </p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                            <div class="flex items-center justify-between bg-gray-50 p-2 rounded">
+                                <span class="text-gray-900">${data.contact_email}</span>
+                                <button onclick="copyToClipboard('${data.contact_email}')"
+                                        class="text-blue-600 hover:text-blue-800 text-sm">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                            <div class="flex items-center justify-between bg-gray-50 p-2 rounded">
+                                <span class="text-gray-900">${data.contact_phone}</span>
+                                <div class="space-x-2">
+                                    <button onclick="copyToClipboard('${data.contact_phone}')"
+                                            class="text-blue-600 hover:text-blue-800 text-sm">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                    <a href="tel:${data.contact_phone}"
+                                       class="text-green-600 hover:text-green-800 text-sm">
+                                        <i class="fas fa-phone"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        ${data.whatsapp_number ? `
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">WhatsApp</label>
+                            <div class="flex items-center justify-between bg-gray-50 p-2 rounded">
+                                <span class="text-gray-900">${data.whatsapp_number}</span>
+                                <div class="space-x-2">
+                                    <button onclick="copyToClipboard('${data.whatsapp_number}')"
+                                            class="text-blue-600 hover:text-blue-800 text-sm">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                    <a href="https://wa.me/${data.whatsapp_number}"
+                                       target="_blank"
+                                       class="text-green-600 hover:text-green-800 text-sm">
+                                        <i class="fab fa-whatsapp"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                document.getElementById('contact-content').innerHTML = content;
+                document.getElementById('contact-modal').classList.remove('hidden');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to load contact information. Please try again.');
+            });
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Create a temporary success message
+                const notification = document.createElement('div');
+                notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg z-50';
+                notification.textContent = 'Copied to clipboard!';
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 2000);
+            }).catch(() => {
+                alert('Could not copy to clipboard');
+            });
+        }
+
+        function closeContactModal() {
+            document.getElementById('contact-modal').classList.add('hidden');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('contact-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeContactModal();
+            }
+        });
+
+        // Dropdown functionality
+        function toggleDropdown() {
+            const dropdown = document.getElementById('dropdown-menu');
+            dropdown.classList.toggle('hidden');
+        }
+
+        // Mobile menu functionality
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const userDropdown = document.getElementById('user-dropdown');
+            const dropdownMenu = document.getElementById('dropdown-menu');
+
+            if (userDropdown && dropdownMenu && !userDropdown.contains(event.target)) {
+                dropdownMenu.classList.add('hidden');
+            }
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
