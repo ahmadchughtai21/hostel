@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}HostelHub - Find Your Perfect Hostel{% endblock %}
+{% block title %}Hostelza - Find Your Perfect Hostel{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
@@ -15,38 +15,48 @@
             </p>
 
             <!-- Search Form -->
-            <div class="max-w-2xl mx-auto">
+            <div class="max-w-2xl mx-auto fade-in-up">
                 <form method="GET" action="{% url 'hostels:hostel_list' %}" class="flex flex-col md:flex-row gap-4">
-                    <div class="flex-1">
+                    <div class="flex-1 relative">
+                        <i class="fas fa-map-marker-alt absolute left-4 top-1/2 transform -translate-y-1/2 text-indigo-500 z-10"></i>
                         <input
                             type="text"
                             name="q"
                             placeholder="Enter location, university, or hostel name..."
-                            class="w-full px-6 py-4 text-gray-900 rounded-lg focus:outline-none focus:ring-4 focus:ring-white focus:ring-opacity-30"
+                            class="w-full pl-12 pr-6 py-4 text-gray-900 bg-white bg-opacity-90 rounded-lg focus:outline-none focus:ring-4 focus:ring-white focus:ring-opacity-50 shadow-lg backdrop-blur-sm"
                         >
                     </div>
                     <button
                         type="submit"
-                        class="bg-white text-indigo-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+                        class="bg-white text-indigo-600 px-8 py-4 rounded-lg font-semibold hover:bg-indigo-50 transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
                     >
-                        <i class="fas fa-search mr-2"></i>Search
+                        <i class="fas fa-search mr-2 text-indigo-600"></i>Search
                     </button>
                 </form>
             </div>
 
             <!-- Quick Stats -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
-                <div class="text-center">
-                    <div class="text-3xl font-bold">500+</div>
-                    <div class="opacity-90">Verified Hostels</div>
+                <div class="text-center fade-in-up glass-effect rounded-xl p-6 hover-scale">
+                    <div class="mb-4">
+                        <i class="fas fa-home text-4xl text-yellow-300 icon-bounce"></i>
+                    </div>
+                    <div class="counter text-4xl font-bold mb-2" data-target="500">0</div>
+                    <div class="text-lg opacity-90">Verified Hostels</div>
                 </div>
-                <div class="text-center">
-                    <div class="text-3xl font-bold">1000+</div>
-                    <div class="opacity-90">Happy Students</div>
+                <div class="text-center fade-in-up glass-effect rounded-xl p-6 hover-scale" style="animation-delay: 0.2s;">
+                    <div class="mb-4">
+                        <i class="fas fa-users text-4xl text-green-300 icon-bounce" style="animation-delay: 0.5s;"></i>
+                    </div>
+                    <div class="counter text-4xl font-bold mb-2" data-target="1000">0</div>
+                    <div class="text-lg opacity-90">Happy Students</div>
                 </div>
-                <div class="text-center">
-                    <div class="text-3xl font-bold">50+</div>
-                    <div class="opacity-90">Cities Covered</div>
+                <div class="text-center fade-in-up glass-effect rounded-xl p-6 hover-scale" style="animation-delay: 0.4s;">
+                    <div class="mb-4">
+                        <i class="fas fa-city text-4xl text-blue-300 icon-bounce" style="animation-delay: 1s;"></i>
+                    </div>
+                    <div class="counter text-4xl font-bold mb-2" data-target="50">0</div>
+                    <div class="text-lg opacity-90">Cities Covered</div>
                 </div>
             </div>
         </div>
@@ -54,36 +64,48 @@
 </div>
 
 <!-- How It Works -->
-<div class="py-16 bg-white">
+<div class="py-16 bg-white overflow-hidden">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl font-bold text-gray-900 mb-4">How It Works</h2>
-            <p class="text-xl text-gray-600">Simple steps to find your perfect hostel</p>
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-900 mb-6 gradient-text">How It Works</h2>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">Discover your perfect hostel in just three simple steps</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="text-center">
-                <div class="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-search text-2xl text-indigo-600"></i>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
+            <div class="text-center fade-in-up hover-scale group px-4">
+                <div class="relative mb-8 inline-block">
+                    <div class="absolute inset-0 bg-pink-400 rounded-full animate-ping opacity-20 group-hover:opacity-40" style="width: 80px; height: 80px;"></div>
+                    <div class="absolute inset-0 bg-pink-300 rounded-full animate-pulse opacity-15" style="width: 80px; height: 80px;"></div>
+                    <div class="relative bg-gradient-secondary w-20 h-20 rounded-full flex items-center justify-center shadow-2xl transform transition-all duration-500 group-hover:scale-125 group-hover:rotate-12">
+                        <i class="fas fa-search text-3xl text-white drop-shadow-lg"></i>
+                    </div>
                 </div>
-                <h3 class="text-xl font-semibold mb-2">Search & Filter</h3>
-                <p class="text-gray-600">Browse hostels by location, price, facilities, and room types</p>
+                <h3 class="text-2xl font-semibold mb-4 gradient-text">Search & Filter</h3>
+                <p class="text-gray-600 leading-relaxed text-lg">Browse hostels by location, price, facilities, gender type, and room types</p>
             </div>
 
-            <div class="text-center">
-                <div class="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-eye text-2xl text-indigo-600"></i>
+            <div class="text-center fade-in-up hover-scale group px-4" style="animation-delay: 0.2s;">
+                <div class="relative mb-8 inline-block">
+                    <div class="absolute inset-0 bg-blue-400 rounded-full animate-ping opacity-20 group-hover:opacity-40" style="animation-delay: 0.3s; width: 80px; height: 80px;"></div>
+                    <div class="absolute inset-0 bg-blue-300 rounded-full animate-pulse opacity-15" style="animation-delay: 0.3s; width: 80px; height: 80px;"></div>
+                    <div class="relative bg-gradient-success w-20 h-20 rounded-full flex items-center justify-center shadow-2xl transform transition-all duration-500 group-hover:scale-125 group-hover:-rotate-12">
+                        <i class="fas fa-eye text-3xl text-white drop-shadow-lg"></i>
+                    </div>
                 </div>
-                <h3 class="text-xl font-semibold mb-2">View Details</h3>
-                <p class="text-gray-600">Check photos, amenities, reviews, and exact location</p>
+                <h3 class="text-2xl font-semibold mb-4 gradient-text">View Details</h3>
+                <p class="text-gray-600 leading-relaxed text-lg">Check photos, amenities, reviews, and exact location with interactive maps</p>
             </div>
 
-            <div class="text-center">
-                <div class="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-phone text-2xl text-indigo-600"></i>
+            <div class="text-center fade-in-up hover-scale group px-4" style="animation-delay: 0.4s;">
+                <div class="relative mb-8 inline-block">
+                    <div class="absolute inset-0 bg-green-400 rounded-full animate-ping opacity-20 group-hover:opacity-40" style="animation-delay: 0.6s; width: 80px; height: 80px;"></div>
+                    <div class="absolute inset-0 bg-green-300 rounded-full animate-pulse opacity-15" style="animation-delay: 0.6s; width: 80px; height: 80px;"></div>
+                    <div class="relative bg-gradient-warning w-20 h-20 rounded-full flex items-center justify-center shadow-2xl transform transition-all duration-500 group-hover:scale-125 group-hover:rotate-12">
+                        <i class="fas fa-phone text-3xl text-white drop-shadow-lg"></i>
+                    </div>
                 </div>
-                <h3 class="text-xl font-semibold mb-2">Contact Owner</h3>
-                <p class="text-gray-600">Get contact details and arrange your visit or booking</p>
+                <h3 class="text-2xl font-semibold mb-4 gradient-text">Contact Owner</h3>
+                <p class="text-gray-600 leading-relaxed text-lg">Get contact details and arrange your visit or booking instantly</p>
             </div>
         </div>
     </div>
@@ -150,17 +172,17 @@
                     <!-- Facilities -->
                     <div class="flex flex-wrap gap-2 mb-4">
                         {% for hf in hostel.hostel_facilities.all|slice:":3" %}
-                            <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
-                                {{ hf.facility.name }}
+                            <span class="bg-gradient-to-r from-blue-100 to-purple-100 text-indigo-700 text-xs px-3 py-1 rounded-full font-medium">
+                                <i class="fas fa-star text-yellow-500 mr-1"></i>{{ hf.facility.name }}
                             </span>
                         {% endfor %}
                         {% if hostel.hostel_facilities.count > 3 %}
-                            <span class="text-gray-500 text-xs">+{{ hostel.hostel_facilities.count|add:"-3" }} more</span>
+                            <span class="text-gray-500 text-xs bg-gray-50 px-2 py-1 rounded-full">+{{ hostel.hostel_facilities.count|add:"-3" }} more</span>
                         {% endif %}
                     </div>
 
-                    <a href="{{ hostel.get_absolute_url }}" class="block w-full text-center bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition-colors">
-                        View Details
+                    <a href="{{ hostel.get_absolute_url }}" class="block w-full text-center bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg font-semibold">
+                        <i class="fas fa-eye mr-2"></i>View Details
                     </a>
                 </div>
             </div>
@@ -168,8 +190,10 @@
         </div>
 
         <div class="text-center mt-12">
-            <a href="{% url 'hostels:hostel_list' %}" class="bg-indigo-600 text-white px-8 py-3 rounded-lg hover:bg-indigo-700 transition-colors">
+            <a href="{% url 'hostels:hostel_list' %}" class="inline-flex items-center bg-gradient-to-r from-indigo-600 to-blue-600 text-white px-8 py-4 rounded-lg hover:from-indigo-700 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 hover:shadow-xl font-semibold text-lg">
+                <i class="fas fa-search mr-3 text-xl"></i>
                 View All Hostels
+                <i class="fas fa-arrow-right ml-3 text-xl"></i>
             </a>
         </div>
     </div>
@@ -258,4 +282,78 @@
         </div>
     </div>
 </div>
+
+<script>
+// Counter Animation
+function animateCounter(element) {
+    const target = parseInt(element.getAttribute('data-target'));
+    const duration = 2000; // 2 seconds
+    const increment = target / (duration / 16); // 60fps
+    let current = 0;
+
+    const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+            element.textContent = target + (target >= 50 ? '+' : '');
+            clearInterval(timer);
+        } else {
+            element.textContent = Math.floor(current) + (target >= 50 ? '+' : '');
+        }
+    }, 16);
+}
+
+// Intersection Observer for counter animation
+const observerOptions = {
+    threshold: 0.5,
+    rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const counters = entry.target.querySelectorAll('.counter');
+            counters.forEach(counter => {
+                if (!counter.classList.contains('animated')) {
+                    counter.classList.add('animated');
+                    animateCounter(counter);
+                }
+            });
+        }
+    });
+}, observerOptions);
+
+// Start observing when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    const statsSection = document.querySelector('.grid.grid-cols-1.md\\:grid-cols-3');
+    if (statsSection) {
+        observer.observe(statsSection.parentElement);
+    }
+
+    // Add smooth scrolling for any internal links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+
+    // Add hover effects to cards
+    document.querySelectorAll('.hover-scale').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-8px) scale(1.02)';
+        });
+
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+});
+</script>
+
 {% endblock %}

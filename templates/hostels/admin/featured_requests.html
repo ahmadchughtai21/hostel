@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+
+{% block title %}Featured Ad Requests | Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white">
+                        <i class="fas fa-star text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Featured Ad Requests</h1>
+                        <p class="text-gray-600">Manage hostel owner requests for featured advertising</p>
+                    </div>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="{% url 'hostels:admin_featured_plans' %}"
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                        <i class="fas fa-cog mr-2"></i>Manage Plans
+                    </a>
+                    <a href="{% url 'hostels:admin_dashboard' %}"
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                        <i class="fas fa-arrow-left mr-2"></i>Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                        <i class="fas fa-list text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Requests</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.total_requests }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                        <i class="fas fa-clock text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Pending Review</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.pending_requests }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-green-100 text-green-600">
+                        <i class="fas fa-check-circle text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Approved</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.approved_requests }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-red-100 text-red-600">
+                        <i class="fas fa-times-circle text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Rejected</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ stats.rejected_requests }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+            <div class="flex items-center space-x-4">
+                <span class="text-sm font-medium text-gray-700">Filter by status:</span>
+                <div class="flex space-x-2">
+                    <a href="?status=all"
+                       class="px-3 py-1 rounded-full text-sm {% if status_filter == 'all' %}bg-blue-100 text-blue-800{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                        All
+                    </a>
+                    <a href="?status=pending"
+                       class="px-3 py-1 rounded-full text-sm {% if status_filter == 'pending' %}bg-yellow-100 text-yellow-800{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                        Pending
+                    </a>
+                    <a href="?status=approved"
+                       class="px-3 py-1 rounded-full text-sm {% if status_filter == 'approved' %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                        Approved
+                    </a>
+                    <a href="?status=rejected"
+                       class="px-3 py-1 rounded-full text-sm {% if status_filter == 'rejected' %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                        Rejected
+                    </a>
+                    <a href="?status=expired"
+                       class="px-3 py-1 rounded-full text-sm {% if status_filter == 'expired' %}bg-gray-100 text-gray-800{% else %}bg-gray-100 text-gray-700 hover:bg-gray-200{% endif %}">
+                        Expired
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Requests List -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900 flex items-center">
+                    <i class="fas fa-list text-purple-500 mr-2"></i>Featured Requests
+                    <span class="ml-2 text-sm text-gray-500">({{ requests|length }} request{{ requests|length|pluralize }})</span>
+                </h3>
+            </div>
+
+            {% if requests %}
+                <div class="divide-y divide-gray-200">
+                    {% for request in requests %}
+                        <div class="p-6 hover:bg-gray-50 transition-colors duration-200" id="request-{{ request.id }}">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-3 mb-3">
+                                        <h4 class="text-lg font-semibold text-gray-900">
+                                            <a href="{{ request.hostel.get_absolute_url }}" class="text-indigo-600 hover:text-indigo-900">
+                                                {{ request.hostel.name }}
+                                            </a>
+                                        </h4>
+
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                            {% if request.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                            {% elif request.status == 'approved' %}bg-green-100 text-green-800
+                                            {% elif request.status == 'rejected' %}bg-red-100 text-red-800
+                                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                            {% if request.status == 'pending' %}<i class="fas fa-clock mr-1"></i>Pending
+                                            {% elif request.status == 'approved' %}<i class="fas fa-check-circle mr-1"></i>Approved
+                                            {% elif request.status == 'rejected' %}<i class="fas fa-times-circle mr-1"></i>Rejected
+                                            {% else %}<i class="fas fa-history mr-1"></i>{{ request.get_status_display }}{% endif %}
+                                        </span>
+
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                            <i class="fas fa-star mr-1"></i>{{ request.plan.name }}
+                                        </span>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                        <div>
+                                            <p class="text-sm text-gray-600 mb-2"><strong>Owner:</strong> {{ request.contact_name }}</p>
+                                            <p class="text-sm text-gray-600 mb-2"><strong>Phone:</strong> {{ request.contact_phone }}</p>
+                                            <p class="text-sm text-gray-600"><strong>Email:</strong> {{ request.contact_email }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-600 mb-2"><strong>Plan:</strong> {{ request.plan.name }} (PKR {{ request.plan.price }})</p>
+                                            <p class="text-sm text-gray-600 mb-2"><strong>Duration:</strong> {{ request.plan.duration_display }}</p>
+                                            <p class="text-sm text-gray-600"><strong>Requested:</strong> {{ request.requested_at|date:"M j, Y H:i" }}</p>
+                                        </div>
+                                    </div>
+
+                                    {% if request.payment_method %}
+                                        <div class="bg-gray-50 rounded-lg p-3 mb-3">
+                                            <p class="text-sm text-gray-700 mb-1"><strong>Payment Method:</strong> {{ request.payment_method }}</p>
+                                            {% if request.payment_reference %}
+                                                <p class="text-sm text-gray-700"><strong>Reference:</strong> {{ request.payment_reference }}</p>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+
+                                    {% if request.status == 'approved' and request.featured_start_date %}
+                                        <div class="bg-green-50 rounded-lg p-3 mb-3">
+                                            <p class="text-sm text-green-700">
+                                                <strong>Featured Period:</strong> {{ request.featured_start_date|date:"M j, Y" }} - {{ request.featured_end_date|date:"M j, Y" }}
+                                                ({{ request.days_remaining }} days remaining)
+                                            </p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="flex flex-col space-y-2 ml-4">
+                                    {% if request.payment_screenshot %}
+                                        <a href="{{ request.payment_screenshot.url }}" target="_blank"
+                                           class="inline-flex items-center px-3 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm">
+                                            <i class="fas fa-image mr-2"></i>View Receipt
+                                        </a>
+                                    {% endif %}
+
+                                    <a href="{% url 'hostels:admin_featured_request_detail' request.pk %}"
+                                       class="inline-flex items-center px-3 py-2 border border-blue-300 text-blue-700 rounded-md hover:bg-blue-50 transition-colors text-sm">
+                                        <i class="fas fa-eye mr-2"></i>View Details
+                                    </a>
+
+                                    {% if request.status == 'pending' %}
+                                        <button onclick="approveRequest({{ request.id }})"
+                                                class="inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm">
+                                            <i class="fas fa-check mr-2"></i>Approve
+                                        </button>
+                                        <button onclick="rejectRequest({{ request.id }})"
+                                                class="inline-flex items-center px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm">
+                                            <i class="fas fa-times mr-2"></i>Reject
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                    <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                        <div class="flex justify-center">
+                            <nav class="flex space-x-2">
+                                {% if page_obj.has_previous %}
+                                    <a href="?page=1{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}"
+                                       class="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">&laquo; First</a>
+                                    <a href="?page={{ page_obj.previous_page_number }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}"
+                                       class="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">Previous</a>
+                                {% endif %}
+
+                                <span class="px-3 py-2 text-sm font-medium text-gray-900">
+                                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                </span>
+
+                                {% if page_obj.has_next %}
+                                    <a href="?page={{ page_obj.next_page_number }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}"
+                                       class="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">Next</a>
+                                    <a href="?page={{ page_obj.paginator.num_pages }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}"
+                                       class="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">Last &raquo;</a>
+                                {% endif %}
+                            </nav>
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="px-6 py-12 text-center">
+                    <i class="fas fa-star text-4xl text-gray-400 mb-4"></i>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No Featured Requests Found</h3>
+                    <p class="text-gray-500">No hostel owners have submitted featured ad requests yet.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Message Display Area -->
+<div id="message-container" class="fixed top-4 right-4 z-50"></div>
+
+<script>
+// Get CSRF token
+const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+function showMessage(message, type) {
+    const container = document.getElementById('message-container');
+    const alertDiv = document.createElement('div');
+
+    const bgColor = type === 'success' ? 'bg-green-100 border-green-400 text-green-700' : 'bg-red-100 border-red-400 text-red-700';
+    const icon = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+
+    alertDiv.className = `border-l-4 p-4 mb-4 rounded shadow-lg max-w-md ${bgColor}`;
+    alertDiv.innerHTML = `
+        <div class="flex items-center">
+            <i class="${icon} mr-2"></i>
+            <span>${message}</span>
+            <button onclick="this.parentElement.parentElement.remove()" class="ml-auto">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+
+    container.appendChild(alertDiv);
+
+    setTimeout(() => {
+        if (alertDiv.parentElement) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+function approveRequest(requestId) {
+    if (!confirm('Are you sure you want to approve this featured request? This will activate the featured listing immediately.')) return;
+
+    fetch(`/api/admin/approve-featured/${requestId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showMessage(data.message, 'success');
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            showMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showMessage('Error approving request: ' + error.message, 'error');
+    });
+}
+
+function rejectRequest(requestId) {
+    const reason = prompt('Please provide a reason for rejection (optional):');
+    if (reason === null) return; // User cancelled
+
+    const formData = new FormData();
+    formData.append('admin_notes', reason || 'Request rejected');
+
+    fetch(`/api/admin/reject-featured/${requestId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showMessage(data.message, 'success');
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            showMessage(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        showMessage('Error rejecting request: ' + error.message, 'error');
+    });
+}
+</script>
+{% endblock %}

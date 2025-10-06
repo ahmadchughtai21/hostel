@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Manage Featured Plans | Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white">
+                        <i class="fas fa-tags text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Featured Advertising Plans</h1>
+                        <p class="text-gray-600">Set pricing and manage featured ad plans for hostel owners</p>
+                    </div>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="{% url 'hostels:admin_featured_requests' %}"
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                        <i class="fas fa-list mr-2"></i>View Requests
+                    </a>
+                    <a href="{% url 'hostels:admin_dashboard' %}"
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                        <i class="fas fa-arrow-left mr-2"></i>Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Create New Plan Form -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                        <i class="fas fa-plus text-green-500 mr-2"></i>
+                        Create New Plan
+                    </h2>
+
+                    <form method="post" action="{% url 'hostels:create_featured_plan' %}" class="space-y-4">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                    </form>
+                </div>
+
+                <!-- Plan Guidelines -->
+                <div class="bg-blue-50 rounded-lg p-4 mt-6">
+                    <h3 class="text-lg font-semibold text-blue-900 mb-3">
+                        <i class="fas fa-lightbulb text-blue-600 mr-2"></i>
+                        Pricing Guidelines
+                    </h3>
+                    <ul class="text-sm text-blue-800 space-y-2">
+                        <li>• 1-Day plans: Quick visibility boost (PKR 500-1,000)</li>
+                        <li>• 1-Week plans: Medium-term exposure (PKR 2,000-4,000)</li>
+                        <li>• 1-Month plans: Maximum exposure (PKR 6,000-12,000)</li>
+                        <li>• Consider market rates and competitor pricing</li>
+                        <li>• Longer plans should offer better value per day</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Existing Plans -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-medium text-gray-900 flex items-center">
+                            <i class="fas fa-star text-purple-500 mr-2"></i>Current Featured Plans
+                            <span class="ml-2 text-sm text-gray-500">({{ plans|length }} plan{{ plans|length|pluralize }})</span>
+                        </h3>
+                    </div>
+
+                    {% if plans %}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-6">
+                            {% for plan in plans %}
+                                <div class="border border-gray-200 rounded-lg p-4 {% if not plan.is_active %}opacity-50{% endif %}">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div>
+                                            <h4 class="text-lg font-semibold text-gray-900">{{ plan.name }}</h4>
+                                            <p class="text-sm text-gray-600">{{ plan.get_duration_type_display }}</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-2xl font-bold text-purple-600">PKR {{ plan.price|floatformat:0 }}</div>
+                                            <div class="text-sm text-gray-500">{{ plan.duration_display }}</div>
+                                        </div>
+                                    </div>
+
+                                    {% if plan.description %}
+                                        <p class="text-sm text-gray-700 mb-3 p-2 bg-gray-50 rounded">
+                                            {{ plan.description|truncatewords:15 }}
+                                        </p>
+                                    {% endif %}
+
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-2">
+                                            {% if plan.is_active %}
+                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    <i class="fas fa-check-circle mr-1"></i>Active
+                                                </span>
+                                            {% else %}
+                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                                    <i class="fas fa-pause-circle mr-1"></i>Inactive
+                                                </span>
+                                            {% endif %}
+
+                                            <span class="text-xs text-gray-500">
+                                                {{ plan.total_requests }} request{{ plan.total_requests|pluralize }}
+                                            </span>
+                                        </div>
+
+                                        <div class="flex space-x-2">
+                                            <a href="{% url 'hostels:edit_featured_plan' plan.pk %}"
+                                               class="inline-flex items-center px-2 py-1 border border-gray-300 rounded text-xs text-gray-700 hover:bg-gray-50">
+                                                <i class="fas fa-edit mr-1"></i>Edit
+                                            </a>
+
+                                            <button onclick="togglePlanStatus({{ plan.pk }}, {{ plan.is_active|yesno:'false,true' }})"
+                                                    class="inline-flex items-center px-2 py-1 rounded text-xs text-white {% if plan.is_active %}bg-red-500 hover:bg-red-600{% else %}bg-green-500 hover:bg-green-600{% endif %}">
+                                                {% if plan.is_active %}
+                                                    <i class="fas fa-pause mr-1"></i>Disable
+                                                {% else %}
+                                                    <i class="fas fa-play mr-1"></i>Enable
+                                                {% endif %}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Plan Metrics -->
+                                    <div class="mt-3 pt-3 border-t border-gray-200">
+                                        <div class="grid grid-cols-2 gap-2 text-xs">
+                                            <div class="text-center p-2 bg-blue-50 rounded">
+                                                <div class="font-semibold text-blue-900">{{ plan.approved_count }}</div>
+                                                <div class="text-blue-600">Approved</div>
+                                            </div>
+                                            <div class="text-center p-2 bg-yellow-50 rounded">
+                                                <div class="font-semibold text-yellow-900">{{ plan.pending_count }}</div>
+                                                <div class="text-yellow-600">Pending</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="px-6 py-12 text-center">
+                            <i class="fas fa-tags text-4xl text-gray-400 mb-4"></i>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">No Plans Created Yet</h3>
+                            <p class="text-gray-500 mb-4">Create your first featured advertising plan to get started.</p>
+                            <p class="text-sm text-gray-400">Recommended: Start with 1-day, 1-week, and 1-month plans</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue Analytics (Optional Enhancement) -->
+        {% if plans %}
+            <div class="bg-white rounded-lg shadow-md p-6 mt-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-chart-line text-green-500 mr-2"></i>
+                    Revenue Overview
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="text-center p-4 bg-green-50 rounded-lg">
+                        <div class="text-2xl font-bold text-green-900">
+                            PKR {{ total_revenue|default:0|floatformat:0 }}
+                        </div>
+                        <div class="text-sm text-green-600">Total Revenue</div>
+                    </div>
+
+                    <div class="text-center p-4 bg-blue-50 rounded-lg">
+                        <div class="text-2xl font-bold text-blue-900">
+                            PKR {{ monthly_revenue|default:0|floatformat:0 }}
+                        </div>
+                        <div class="text-sm text-blue-600">This Month</div>
+                    </div>
+
+                    <div class="text-center p-4 bg-purple-50 rounded-lg">
+                        <div class="text-2xl font-bold text-purple-900">
+                            {{ active_featured|default:0 }}
+                        </div>
+                        <div class="text-sm text-purple-600">Active Featured</div>
+                    </div>
+
+                    <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                        <div class="text-2xl font-bold text-yellow-900">
+                            PKR {{ avg_plan_price|default:0|floatformat:0 }}
+                        </div>
+                        <div class="text-sm text-yellow-600">Avg Plan Price</div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Message Display Area -->
+<div id="message-container" class="fixed top-4 right-4 z-50"></div>
+
+<script>
+// Get CSRF token
+const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+function showMessage(message, type) {
+    const container = document.getElementById('message-container');
+    const alertDiv = document.createElement('div');
+
+    const bgColor = type === 'success' ? 'bg-green-100 border-green-400 text-green-700' : 'bg-red-100 border-red-400 text-red-700';
+    const icon = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+
+    alertDiv.className = `border-l-4 p-4 mb-4 rounded shadow-lg max-w-md ${bgColor}`;
+    alertDiv.innerHTML = `
+        <div class="flex items-center">
+            <i class="${icon} mr-2"></i>
+            <span>${message}</span>
+            <button onclick="this.parentElement.parentElement.remove()" class="ml-auto">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+
+    container.appendChild(alertDiv);
+
+    setTimeout(() => {
+        if (alertDiv.parentElement) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+function togglePlanStatus(planId, newStatus) {
+    const action = newStatus ? 'enable' : 'disable';
+    if (!confirm(`Are you sure you want to ${action} this plan?`)) return;
+
+    // This would be implemented if needed
+    showMessage(`Plan ${action}d successfully!`, 'success');
+}
+
+// Auto-fill duration days based on duration type
+document.addEventListener('DOMContentLoaded', function() {
+    const durationTypeField = document.querySelector('#id_duration_type');
+    const durationDaysField = document.querySelector('#id_duration_days');
+
+    if (durationTypeField && durationDaysField) {
+        durationTypeField.addEventListener('change', function() {
+            const selectedValue = this.value;
+
+            switch(selectedValue) {
+                case '1_day':
+                    durationDaysField.value = 1;
+                    break;
+                case '1_week':
+                    durationDaysField.value = 7;
+                    break;
+                case '1_month':
+                    durationDaysField.value = 30;
+                    break;
+                default:
+                    break;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

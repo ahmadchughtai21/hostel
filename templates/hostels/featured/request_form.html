@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Request Featured Ad - {{ hostel.name }} | Hostelza{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <div class="flex items-center space-x-4">
+                <div class="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white">
+                    <i class="fas fa-star text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Request Featured Ad</h1>
+                    <p class="text-gray-600">Boost your hostel's visibility with our featured listing plans</p>
+                </div>
+            </div>
+
+            <!-- Hostel Info -->
+            <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                <div class="flex items-center space-x-4">
+                    <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">
+                        {{ hostel.name|first|upper }}
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">{{ hostel.name }}</h3>
+                        <p class="text-gray-600">{{ hostel.address|truncatewords:10 }}</p>
+                        <div class="flex items-center mt-1 space-x-4">
+                            {% if hostel.is_verified %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <i class="fas fa-check-circle mr-1"></i>Verified
+                                </span>
+                            {% endif %}
+                            {% if hostel.is_featured %}
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                    <i class="fas fa-star mr-1"></i>Currently Featured
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Featured Plans -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {% for plan in plans %}
+                <div class="bg-white rounded-lg shadow-md p-6 border-2 border-gray-200 hover:border-purple-500 transition-colors duration-200 {% if plan.duration_type == '1_month' %}ring-2 ring-purple-500 relative{% endif %}">
+                    {% if plan.duration_type == '1_month' %}
+                        <div class="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                            <span class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                                Most Popular
+                            </span>
+                        </div>
+                    {% endif %}
+
+                    <div class="text-center">
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">{{ plan.name }}</h3>
+                        <div class="text-3xl font-bold text-purple-600 mb-1">
+                            PKR {{ plan.price|floatformat:0 }}
+                        </div>
+                        <p class="text-gray-600 text-sm mb-4">for {{ plan.duration_display }}</p>
+
+                        <div class="space-y-3">
+                            <div class="flex items-center text-sm text-gray-700">
+                                <i class="fas fa-check text-green-500 mr-2"></i>
+                                Featured in search results
+                            </div>
+                            <div class="flex items-center text-sm text-gray-700">
+                                <i class="fas fa-check text-green-500 mr-2"></i>
+                                Priority homepage placement
+                            </div>
+                            <div class="flex items-center text-sm text-gray-700">
+                                <i class="fas fa-check text-green-500 mr-2"></i>
+                                Enhanced visibility badge
+                            </div>
+                            {% if plan.duration_days >= 7 %}
+                                <div class="flex items-center text-sm text-gray-700">
+                                    <i class="fas fa-check text-green-500 mr-2"></i>
+                                    Weekly performance reports
+                                </div>
+                            {% endif %}
+                            {% if plan.duration_days >= 30 %}
+                                <div class="flex items-center text-sm text-gray-700">
+                                    <i class="fas fa-check text-green-500 mr-2"></i>
+                                    Priority customer support
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        {% if plan.description %}
+                            <p class="text-gray-600 text-sm mt-4 p-3 bg-gray-50 rounded-lg">
+                                {{ plan.description }}
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Request Form -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                <i class="fas fa-file-alt text-purple-500 mr-2"></i>
+                Request Details
+            </h2>
+
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                {{ form|crispy }}
+
+                <!-- Payment Instructions -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h3 class="text-lg font-semibold text-blue-900 mb-3 flex items-center">
+                        <i class="fas fa-credit-card text-blue-600 mr-2"></i>
+                        Payment Instructions
+                    </h3>
+                    <div class="space-y-2 text-sm text-blue-800">
+                        <p><strong>Bank Account:</strong> Allied Bank Ltd</p>
+                        <p><strong>Account Title:</strong> Hostelza Platform</p>
+                        <p><strong>Account Number:</strong> 1234567890123</p>
+                        <p><strong>IBAN:</strong> PK12ABCD1234567890123456</p>
+                        <p><strong>JazzCash:</strong> +92 300 1234567</p>
+                        <p><strong>EasyPaisa:</strong> +92 300 1234567</p>
+                        <hr class="border-blue-300 my-3">
+                        <p class="font-medium">
+                            📝 <strong>Note:</strong> After making payment, please fill out this form with transaction details and upload payment screenshot. Our team will review and activate your featured listing within 24 hours.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+                    <a href="{% url 'hostels:owner_dashboard' %}"
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                        <i class="fas fa-arrow-left mr-2"></i>Cancel
+                    </a>
+                    <button type="submit"
+                            class="inline-flex items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200">
+                        <i class="fas fa-paper-plane mr-2"></i>Submit Request
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- FAQ Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mt-8">
+            <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                <i class="fas fa-question-circle text-blue-500 mr-2"></i>
+                Frequently Asked Questions
+            </h2>
+            <div class="space-y-4">
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-2">How quickly will my hostel be featured?</h3>
+                    <p class="text-gray-600 text-sm">Once payment is confirmed, we activate featured listings within 24 hours.</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Can I extend my featured period?</h3>
+                    <p class="text-gray-600 text-sm">Yes! You can submit a new request before your current period expires.</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-2">What payment methods do you accept?</h3>
+                    <p class="text-gray-600 text-sm">We accept bank transfers, JazzCash, EasyPaisa, and other digital payment methods.</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-900 mb-2">Is there a refund policy?</h3>
+                    <p class="text-gray-600 text-sm">Refunds are processed if technical issues prevent your listing from being featured as promised.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Plan selection logic
+    const planRadios = document.querySelectorAll('input[name="plan"]');
+    const planCards = document.querySelectorAll('.bg-white.rounded-lg.shadow-md');
+
+    planRadios.forEach((radio, index) => {
+        radio.addEventListener('change', function() {
+            // Reset all cards
+            planCards.forEach(card => {
+                if (!card.classList.contains('ring-2')) {
+                    card.classList.remove('border-purple-500', 'bg-purple-50');
+                    card.classList.add('border-gray-200');
+                }
+            });
+
+            // Highlight selected card
+            if (this.checked && planCards[index]) {
+                planCards[index].classList.remove('border-gray-200');
+                planCards[index].classList.add('border-purple-500', 'bg-purple-50');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

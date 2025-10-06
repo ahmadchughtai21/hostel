@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Edit Featured Plan | Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white">
+                        <i class="fas fa-edit text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Edit Featured Plan</h1>
+                        <p class="text-gray-600">Update pricing and details for {{ object.name }}</p>
+                    </div>
+                </div>
+                <a href="{% url 'hostels:admin_featured_plans' %}"
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Plans
+                </a>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                {{ form|crispy }}
+
+                <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+                    <a href="{% url 'hostels:admin_featured_plans' %}"
+                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                        <i class="fas fa-times mr-2"></i>Cancel
+                    </a>
+                    <button type="submit"
+                            class="inline-flex items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200">
+                        <i class="fas fa-save mr-2"></i>Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Plan Usage Statistics -->
+        <div class="bg-white rounded-lg shadow-md p-6 mt-8">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <i class="fas fa-chart-bar text-blue-500 mr-2"></i>
+                Plan Statistics
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="text-center p-4 bg-blue-50 rounded-lg">
+                    <div class="text-2xl font-bold text-blue-900">{{ object.requests.count }}</div>
+                    <div class="text-sm text-blue-600">Total Requests</div>
+                </div>
+
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <div class="text-2xl font-bold text-green-900">{{ approved_count }}</div>
+                            <div class="text-sm text-green-600">Approved</div>
+                        </div>
+
+                        <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                            <div class="text-2xl font-bold text-yellow-900">{{ pending_count }}</div>
+                            <div class="text-sm text-yellow-600">Pending</div>
+                        </div>                <div class="text-center p-4 bg-purple-50 rounded-lg">
+                    <div class="text-2xl font-bold text-purple-900">
+                        PKR {{ total_revenue|default:0|floatformat:0 }}
+                    </div>
+                    <div class="text-sm text-purple-600">Revenue Generated</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-fill duration days based on duration type
+document.addEventListener('DOMContentLoaded', function() {
+    const durationTypeField = document.querySelector('#id_duration_type');
+    const durationDaysField = document.querySelector('#id_duration_days');
+
+    if (durationTypeField && durationDaysField) {
+        durationTypeField.addEventListener('change', function() {
+            const selectedValue = this.value;
+
+            switch(selectedValue) {
+                case '1_day':
+                    durationDaysField.value = 1;
+                    break;
+                case '1_week':
+                    durationDaysField.value = 7;
+                    break;
+                case '1_month':
+                    durationDaysField.value = 30;
+                    break;
+                default:
+                    break;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

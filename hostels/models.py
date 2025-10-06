@@ -33,6 +33,12 @@ class User(AbstractUser):
 
 class Hostel(models.Model):
     """Main hostel model"""
+    GENDER_CHOICES = [
+        ('male', 'Boys/Men Only'),
+        ('female', 'Girls/Women Only'),
+        ('mixed', 'Co-ed/Mixed'),
+    ]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='hostels')
     name = models.CharField(max_length=200)
@@ -41,6 +47,7 @@ class Hostel(models.Model):
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     google_location_link = models.URLField(max_length=500, blank=True, help_text="Google Maps location link")
+    gender_type = models.CharField(max_length=10, choices=GENDER_CHOICES, default='mixed', help_text="Who can stay at this hostel")
 
     # Landmark proximity information
     nearby_landmark = models.CharField(max_length=300, blank=True, help_text="Name of nearby university, school, or workplace")
@@ -86,6 +93,27 @@ class Hostel(models.Model):
     def contact_reveals_count(self):
         """Count how many times contact info was revealed"""
         return self.contact_reveals.count()
+
+    @property
+    def current_featured_request(self):
+        """Get current active featured request if any"""
+        from django.utils import timezone
+        return self.featured_requests.filter(
+            status='approved',
+            featured_start_date__lte=timezone.now(),
+            featured_end_date__gte=timezone.now()
+        ).first()
+
+    @property
+    def is_currently_featured(self):
+        """Check if hostel is currently featured based on active requests"""
+        return self.current_featured_request is not None
+
+    @property
+    def featured_until(self):
+        """Get the end date of current featured period"""
+        current = self.current_featured_request
+        return current.featured_end_date if current else None
 
     @property
     def average_rating(self):
@@ -395,3 +423,137 @@ class HostelSubscription(models.Model):
             delta = self.subscription_end_date - timezone.now().date()
             return delta.days
         return None
+
+
+class FeaturedPlan(models.Model):
+    """Pricing plans for featured ads"""
+    DURATION_CHOICES = [
+        ('1_day', '1 Day'),
+        ('1_week', '1 Week'),
+        ('1_month', '1 Month'),
+    ]
+
+    name = models.CharField(max_length=50, unique=True)
+    duration_type = models.CharField(max_length=20, choices=DURATION_CHOICES, unique=True)
+    duration_days = models.IntegerField(help_text="Number of days for this plan")
+    price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Price in PKR")
+    description = models.TextField(blank=True, help_text="Benefits and features of this plan")
+    is_active = models.BooleanField(default=True, help_text="Whether this plan is available for purchase")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['duration_days']
+
+    def __str__(self):
+        return f"{self.name} - PKR {self.price}"
+
+    @property
+    def duration_display(self):
+        """Human readable duration"""
+        if self.duration_days == 1:
+            return "1 Day"
+        elif self.duration_days == 7:
+            return "1 Week"
+        elif self.duration_days == 30:
+            return "1 Month"
+        else:
+            return f"{self.duration_days} Days"
+
+
+class FeaturedRequest(models.Model):
+    """Track requests from hostel owners for featured ads"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending Review'),
+        ('approved', 'Approved & Active'),
+        ('rejected', 'Rejected'),
+        ('expired', 'Expired'),
+    ]
+
+    hostel = models.ForeignKey(Hostel, on_delete=models.CASCADE, related_name='featured_requests')
+    plan = models.ForeignKey(FeaturedPlan, on_delete=models.CASCADE, related_name='requests')
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='featured_requests')
+
+    # Contact and payment info
+    contact_name = models.CharField(max_length=100)
+    contact_phone = models.CharField(max_length=20)
+    contact_email = models.EmailField()
+    whatsapp_number = models.CharField(max_length=20, blank=True)
+    payment_method = models.CharField(max_length=100, blank=True, help_text="How payment was made")
+    payment_reference = models.CharField(max_length=200, blank=True, help_text="Transaction ID or reference")
+    payment_screenshot = models.ImageField(
+        upload_to='payment_screenshots/',
+        blank=True,
+        validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'pdf'])],
+        help_text="Screenshot or receipt of payment"
+    )
+
+    # Status and dates
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    requested_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_featured_requests')
+
+    # Featured period (set when approved)
+    featured_start_date = models.DateTimeField(null=True, blank=True)
+    featured_end_date = models.DateTimeField(null=True, blank=True)
+
+    # Admin notes
+    admin_notes = models.TextField(blank=True, help_text="Internal admin notes")
+
+    class Meta:
+        ordering = ['-requested_at']
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['featured_start_date', 'featured_end_date']),
+        ]
+
+    def __str__(self):
+        return f"{self.hostel.name} - {self.plan.name} ({self.get_status_display()})"
+
+    @property
+    def is_active(self):
+        """Check if featured period is currently active"""
+        from django.utils import timezone
+        if self.status == 'approved' and self.featured_start_date and self.featured_end_date:
+            now = timezone.now()
+            return self.featured_start_date <= now <= self.featured_end_date
+        return False
+
+    @property
+    def days_remaining(self):
+        """Get days remaining in featured period"""
+        if self.featured_end_date:
+            from django.utils import timezone
+            delta = self.featured_end_date - timezone.now()
+            return max(0, delta.days)
+        return 0
+
+    @property
+    def total_amount(self):
+        """Get the total amount for this request"""
+        return self.plan.price
+
+
+class FeaturedHistory(models.Model):
+    """Track history of featured periods for analytics"""
+    hostel = models.ForeignKey(Hostel, on_delete=models.CASCADE, related_name='featured_history')
+    request = models.OneToOneField(FeaturedRequest, on_delete=models.CASCADE, related_name='history')
+    plan = models.ForeignKey(FeaturedPlan, on_delete=models.CASCADE)
+
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2)
+
+    # Performance metrics
+    views_during_period = models.IntegerField(default=0)
+    contacts_revealed_during_period = models.IntegerField(default=0)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-start_date']
+        verbose_name_plural = "Featured histories"
+
+    def __str__(self):
+        return f"{self.hostel.name} - Featured {self.start_date.date()} to {self.end_date.date()}"

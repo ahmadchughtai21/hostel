@@ -1,0 +1,111 @@
+{% if reports %}
+    <div class="space-y-4">
+                    {% for report in reports %}
+                        <div class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow" id="report-{{ report.id }}">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center space-x-3 mb-3">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                            {% if report.report_type == 'fake' %}bg-red-100 text-red-800
+                                            {% elif report.report_type == 'inappropriate' %}bg-orange-100 text-orange-800
+                                            {% elif report.report_type == 'spam' %}bg-yellow-100 text-yellow-800
+                                            {% else %}bg-blue-100 text-blue-800{% endif %}">
+                                            <i class="fas fa-exclamation-circle mr-1"></i>{{ report.get_report_type_display }}
+                                        </span>
+
+                                        {% if report.is_resolved %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                <i class="fas fa-check-circle mr-1"></i>Resolved
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                <i class="fas fa-clock mr-1"></i>Pending
+                                            </span>
+                                        {% endif %}
+
+                                        <span class="text-sm text-gray-500">#{{ report.id }}</span>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <h4 class="text-lg font-semibold text-gray-900 mb-1">
+                                            <a href="{{ report.hostel.get_absolute_url }}" class="text-indigo-600 hover:text-indigo-900">
+                                                {{ report.hostel.name }}
+                                            </a>
+                                        </h4>
+                                        <p class="text-gray-600 text-sm">{{ report.hostel.address|truncatewords:8 }}</p>
+                                    </div>
+
+                                    <div class="bg-gray-50 rounded-lg p-3 mb-3">
+                                        <p class="text-gray-700">{{ report.description }}</p>
+                                    </div>
+
+                                    <div class="flex items-center text-sm text-gray-500 space-x-4">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-user mr-1"></i>
+                                            <span>Reported by {{ report.reporter.username }}</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <i class="fas fa-calendar mr-1"></i>
+                                            <span>{{ report.created_at|date:"M j, Y H:i" }}</span>
+                                        </div>
+                                        {% if report.is_resolved %}
+                                            <div class="flex items-center">
+                                                <i class="fas fa-user-check mr-1"></i>
+                                                <span>Resolved by {{ report.resolved_by.username }} on {{ report.resolved_at|date:"M j, Y" }}</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-col space-y-2 ml-4">
+                                    <a href="{{ report.hostel.get_absolute_url }}"
+                                       class="inline-flex items-center px-3 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm">
+                                        <i class="fas fa-eye mr-2"></i>View Hostel
+                                    </a>
+
+                                    {% if not report.is_resolved %}
+                                        <button onclick="resolveReport({{ report.id }})"
+                                                class="inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm">
+                                            <i class="fas fa-check mr-2"></i>Resolve
+                                        </button>
+                                    {% endif %}
+
+                                    <button onclick="deleteReport({{ report.id }})"
+                                            class="inline-flex items-center px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm">
+                                        <i class="fas fa-trash mr-2"></i>Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                    <div class="flex justify-center mt-8">
+                        <nav class="flex space-x-2">
+                            {% if page_obj.has_previous %}
+                                <a href="?page=1" class="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">&laquo; First</a>
+                                <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">Previous</a>
+                            {% endif %}
+
+                            <span class="px-3 py-2 text-sm font-medium text-gray-900">
+                                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                            </span>
+
+                            {% if page_obj.has_next %}
+                                <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">Next</a>
+                                <a href="?page={{ page_obj.paginator.num_pages }}" class="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">Last &raquo;</a>
+                            {% endif %}
+                        </nav>
+                    </div>
+            {% endif %}
+        </div>
+    </div>
+{% else %}
+    <div class="px-6 py-12 text-center">
+        <i class="fas fa-clipboard-list text-4xl text-gray-400 mb-4"></i>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">No Reports Found</h3>
+        <p class="text-gray-500">There are currently no reports to review. This is a good sign!</p>
+    </div>
+{% endif %}

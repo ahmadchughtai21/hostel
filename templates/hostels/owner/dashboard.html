@@ -126,6 +126,12 @@
                                         </span>
                                     {% endif %}
 
+                                    {% if hostel.is_currently_featured %}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 ml-2">
+                                            <i class="fas fa-star mr-1"></i>Featured
+                                        </span>
+                                    {% endif %}
+
                                     {% if not hostel.is_active %}
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 ml-2">
                                             Inactive
@@ -151,6 +157,15 @@
                                     >
                                         <i class="fas fa-edit"></i>
                                     </a>
+                                    {% if not hostel.is_currently_featured %}
+                                        <a
+                                            href="{% url 'hostels:request_featured' hostel.slug %}"
+                                            class="text-purple-600 hover:text-purple-900"
+                                            title="Request Featured Ad"
+                                        >
+                                            <i class="fas fa-star"></i>
+                                        </a>
+                                    {% endif %}
                                     <a
                                         href="{% url 'hostels:delete_hostel' hostel.slug %}"
                                         class="text-red-600 hover:text-red-900"

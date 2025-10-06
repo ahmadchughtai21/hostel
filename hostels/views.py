@@ -10,12 +10,13 @@ from django.db.models import Q, Count, Avg
 from django.urls import reverse_lazy
 from django.views import View
 from django.utils.decorators import method_decorator
+from django.utils import timezone
 from decimal import Decimal
 import requests
 import json
 
-from .models import Hostel, User, Review, Category, RoomType, Facility, ContactReveal, Favorite, Item, HostelImage
-from .forms import UserRegistrationForm, UserProfileForm, HostelForm
+from .models import Hostel, User, Review, Category, RoomType, Facility, ContactReveal, Favorite, Item, HostelImage, Report, FeaturedPlan, FeaturedRequest, FeaturedHistory
+from .forms import UserRegistrationForm, UserProfileForm, HostelForm, ReportForm, FeaturedRequestForm, FeaturedPlanForm, FeaturedRequestReviewForm
 
 # Dashboard views
 class DashboardView(LoginRequiredMixin, TemplateView):
@@ -30,7 +31,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         return context
 
 class OwnerDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
-    template_name = 'hostels/dashboard/owner.html'
+    template_name = 'hostels/owner/dashboard.html'
 
     def test_func(self):
         return self.request.user.role == 'owner'
@@ -38,11 +39,32 @@ class OwnerDashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
+
+        # Get hostels with prefetch for optimization
+        hostels = user.hostels.all().select_related().prefetch_related(
+            'featured_requests', 'contact_reveals'
+        ).order_by('-created_at')
+
+        # Calculate featured hostels count
+        featured_count = sum(1 for hostel in hostels if hostel.is_currently_featured)
+
+        # Get pending featured requests
+        pending_requests = FeaturedRequest.objects.filter(
+            owner=user,
+            status='pending'
+        ).select_related('hostel', 'plan')
+
+        # Calculate total contact reveals across all hostels
+        total_reveals = sum(hostel.contact_reveals_count for hostel in hostels)
+
         context.update({
-            'hostels': user.hostels.all().order_by('-created_at'),
-            'total_hostels': user.hostels.count(),
-            'verified_hostels': user.hostels.filter(is_verified=True).count(),
-            'pending_hostels': user.hostels.filter(is_verified=False).count(),
+            'hostels': hostels,
+            'total_hostels': hostels.count(),
+            'verified_hostels': hostels.filter(is_verified=True).count(),
+            'pending_hostels': hostels.filter(is_verified=False).count(),
+            'featured_hostels': featured_count,
+            'total_contact_reveals': total_reveals,
+            'pending_featured_requests': pending_requests,
         })
         return context
 
@@ -141,6 +163,11 @@ class HostelListView(ListView):
         room_type = self.request.GET.get('room_type')
         if room_type:
             queryset = queryset.filter(room_types__type=room_type)
+
+        # Gender type filter
+        gender_type = self.request.GET.get('gender_type')
+        if gender_type:
+            queryset = queryset.filter(gender_type=gender_type)
 
         # Rating filter
         min_rating = self.request.GET.get('min_rating')
@@ -582,6 +609,7 @@ class AdminDashboardView(AdminRequiredMixin, TemplateView):
         context['total_students'] = User.objects.filter(role='student').count()
         context['total_contact_reveals'] = ContactReveal.objects.count()
         context['pending_reviews_count'] = Review.objects.filter(is_approved=False).count()
+        context['pending_featured_requests'] = FeaturedRequest.objects.filter(status='pending').count()
 
         # Recent data for dashboard with contact reveal counts
         recent_hostels = Hostel.objects.select_related('owner').prefetch_related('images', 'contact_reveals').order_by('-created_at')[:10]
@@ -743,13 +771,89 @@ class AdminAnalyticsView(AdminRequiredMixin, TemplateView):
 
 
 class ReportsView(AdminRequiredMixin, ListView):
+    """Admin view to manage hostel reports"""
+    model = Report
     template_name = 'hostels/admin/reports.html'
     context_object_name = 'reports'
+    paginate_by = 20
 
     def get_queryset(self):
-        # Since we don't have a Report model yet, return empty queryset
-        # This can be implemented later when reporting functionality is needed
-        return []
+        return Report.objects.select_related('hostel', 'reporter', 'resolved_by').order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'pending_reports': Report.objects.filter(is_resolved=False).count(),
+            'total_reports': Report.objects.count(),
+            'resolved_reports': Report.objects.filter(is_resolved=True).count(),
+        })
+        return context
+
+
+class ReportHostelView(LoginRequiredMixin, CreateView):
+    """View for reporting a hostel"""
+    model = Report
+    form_class = ReportForm
+    template_name = 'hostels/report_hostel.html'
+
+    def get_hostel(self):
+        return get_object_or_404(Hostel, slug=self.kwargs['slug'])
+
+    def form_valid(self, form):
+        form.instance.hostel = self.get_hostel()
+        form.instance.reporter = self.request.user
+        messages.success(self.request, 'Report submitted successfully. We will review it shortly.')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return self.get_hostel().get_absolute_url()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['hostel'] = self.get_hostel()
+        return context
+
+
+class ResolveReportView(AdminRequiredMixin, View):
+    """AJAX view for resolving reports"""
+
+    def post(self, request, report_id):
+        try:
+            report = get_object_or_404(Report, id=report_id)
+            report.is_resolved = True
+            report.resolved_by = request.user
+            report.resolved_at = timezone.now()
+            report.save()
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Report resolved successfully'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': str(e)
+            })
+
+
+class DeleteReportView(AdminRequiredMixin, View):
+    """AJAX view for permanently deleting reports"""
+
+    def post(self, request, report_id):
+        try:
+            report = get_object_or_404(Report, id=report_id)
+            hostel_name = report.hostel.name
+            report.delete()
+
+            return JsonResponse({
+                'success': True,
+                'message': f'Report for {hostel_name} has been permanently deleted'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': str(e)
+            })
 
 
 # API Views
@@ -963,3 +1067,275 @@ class ReviewModerationView(AdminRequiredMixin, ListView):
         }
 
         return context
+
+
+# Featured Ads System Views
+class FeaturedRequestView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    """View for hostel owners to request featured ads"""
+    model = FeaturedRequest
+    form_class = FeaturedRequestForm
+    template_name = 'hostels/featured/request_form.html'
+    success_url = reverse_lazy('hostels:owner_dashboard')
+
+    def test_func(self):
+        return self.request.user.role == 'owner'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        kwargs['hostel'] = get_object_or_404(Hostel, slug=self.kwargs['slug'], owner=self.request.user)
+        return kwargs
+
+    def form_valid(self, form):
+        hostel = get_object_or_404(Hostel, slug=self.kwargs['slug'], owner=self.request.user)
+
+        # Check if there's already a pending request for this hostel
+        existing_request = FeaturedRequest.objects.filter(
+            hostel=hostel,
+            status='pending'
+        ).first()
+
+        if existing_request:
+            messages.error(self.request, 'You already have a pending featured request for this hostel.')
+            return redirect('hostels:owner_dashboard')
+
+        form.instance.hostel = hostel
+        form.instance.owner = self.request.user
+
+        response = super().form_valid(form)
+        messages.success(self.request, 'Your featured ad request has been submitted successfully! We will review it and contact you soon.')
+        return response
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        hostel = get_object_or_404(Hostel, slug=self.kwargs['slug'], owner=self.request.user)
+        context['hostel'] = hostel
+        context['plans'] = FeaturedPlan.objects.filter(is_active=True)
+        return context
+
+
+class FeaturedRequestListView(AdminRequiredMixin, ListView):
+    """Admin view to list all featured requests"""
+    model = FeaturedRequest
+    template_name = 'hostels/admin/featured_requests.html'
+    context_object_name = 'requests'
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        status_filter = self.request.GET.get('status')
+
+        if status_filter and status_filter != 'all':
+            queryset = queryset.filter(status=status_filter)
+
+        return queryset.select_related('hostel', 'owner', 'plan')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Statistics
+        total_requests = FeaturedRequest.objects.count()
+        pending_requests = FeaturedRequest.objects.filter(status='pending').count()
+        approved_requests = FeaturedRequest.objects.filter(status='approved').count()
+        rejected_requests = FeaturedRequest.objects.filter(status='rejected').count()
+
+        context['stats'] = {
+            'total_requests': total_requests,
+            'pending_requests': pending_requests,
+            'approved_requests': approved_requests,
+            'rejected_requests': rejected_requests,
+        }
+
+        context['status_filter'] = self.request.GET.get('status', 'all')
+        return context
+
+
+class FeaturedRequestDetailView(AdminRequiredMixin, DetailView):
+    """Admin view to review individual featured requests"""
+    model = FeaturedRequest
+    template_name = 'hostels/admin/featured_request_detail.html'
+    context_object_name = 'request'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = FeaturedRequestReviewForm(instance=self.object)
+        return context
+
+
+class FeaturedRequestApproveView(AdminRequiredMixin, View):
+    """AJAX view to approve featured requests"""
+
+    def post(self, request, pk):
+        try:
+            featured_request = get_object_or_404(FeaturedRequest, pk=pk)
+
+            if featured_request.status != 'pending':
+                return JsonResponse({
+                    'success': False,
+                    'message': 'This request has already been processed.'
+                })
+
+            # Calculate featured period
+            start_date = timezone.now()
+            end_date = start_date + timezone.timedelta(days=featured_request.plan.duration_days)
+
+            # Update the request
+            featured_request.status = 'approved'
+            featured_request.reviewed_at = timezone.now()
+            featured_request.reviewed_by = request.user
+            featured_request.featured_start_date = start_date
+            featured_request.featured_end_date = end_date
+            featured_request.save()
+
+            # Update hostel featured status
+            featured_request.hostel.is_featured = True
+            featured_request.hostel.save()
+
+            # Create history record
+            FeaturedHistory.objects.create(
+                hostel=featured_request.hostel,
+                request=featured_request,
+                plan=featured_request.plan,
+                start_date=start_date,
+                end_date=end_date,
+                amount_paid=featured_request.plan.price
+            )
+
+            return JsonResponse({
+                'success': True,
+                'message': f'Featured request approved! {featured_request.hostel.name} is now featured until {end_date.strftime("%Y-%m-%d %H:%M")}'
+            })
+
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error approving request: {str(e)}'
+            })
+
+
+class FeaturedRequestRejectView(AdminRequiredMixin, View):
+    """AJAX view to reject featured requests"""
+
+    def post(self, request, pk):
+        try:
+            featured_request = get_object_or_404(FeaturedRequest, pk=pk)
+            admin_notes = request.POST.get('admin_notes', '')
+
+            if featured_request.status != 'pending':
+                return JsonResponse({
+                    'success': False,
+                    'message': 'This request has already been processed.'
+                })
+
+            featured_request.status = 'rejected'
+            featured_request.reviewed_at = timezone.now()
+            featured_request.reviewed_by = request.user
+            featured_request.admin_notes = admin_notes
+            featured_request.save()
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Featured request has been rejected.'
+            })
+
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error rejecting request: {str(e)}'
+            })
+
+
+class FeaturedPlansManageView(AdminRequiredMixin, ListView):
+    """Admin view to manage featured pricing plans"""
+    model = FeaturedPlan
+    template_name = 'hostels/admin/featured_plans.html'
+    context_object_name = 'plans'
+
+    def get_queryset(self):
+        """Get plans with annotated request counts"""
+        from django.db.models import Count, Q
+        return FeaturedPlan.objects.annotate(
+            total_requests=Count('requests'),
+            approved_count=Count('requests', filter=Q(requests__status='approved')),
+            pending_count=Count('requests', filter=Q(requests__status='pending'))
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = FeaturedPlanForm()
+        return context
+
+
+class FeaturedPlanCreateView(AdminRequiredMixin, CreateView):
+    """Admin view to create new featured plans"""
+    model = FeaturedPlan
+    form_class = FeaturedPlanForm
+    success_url = reverse_lazy('hostels:admin_featured_plans')
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, f'Featured plan "{self.object.name}" created successfully!')
+        return response
+
+
+class FeaturedPlanUpdateView(AdminRequiredMixin, UpdateView):
+    """Admin view to update featured plans"""
+    model = FeaturedPlan
+    form_class = FeaturedPlanForm
+    template_name = 'hostels/admin/featured_plan_form.html'
+    success_url = reverse_lazy('hostels:admin_featured_plans')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Calculate statistics for this plan
+        plan = self.object
+        context['approved_count'] = plan.requests.filter(status='approved').count()
+        context['pending_count'] = plan.requests.filter(status='pending').count()
+        context['total_revenue'] = sum(
+            request.plan.price for request in plan.requests.filter(status='approved')
+        )
+        return context
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, f'Featured plan "{self.object.name}" updated successfully!')
+        return response
+
+
+class CheckFeaturedStatusView(View):
+    """Background task view to check and update featured status"""
+
+    def get(self, request):
+        """Check for expired featured periods and update hostel status"""
+        from django.utils import timezone
+
+        # Find expired featured requests
+        expired_requests = FeaturedRequest.objects.filter(
+            status='approved',
+            featured_end_date__lt=timezone.now()
+        )
+
+        updated_count = 0
+        for req in expired_requests:
+            req.status = 'expired'
+            req.save()
+
+            # Check if hostel has other active featured periods
+            active_requests = FeaturedRequest.objects.filter(
+                hostel=req.hostel,
+                status='approved',
+                featured_start_date__lte=timezone.now(),
+                featured_end_date__gte=timezone.now()
+            )
+
+            if not active_requests.exists():
+                req.hostel.is_featured = False
+                req.hostel.save()
+
+            updated_count += 1
+
+        return JsonResponse({
+            'success': True,
+            'updated_count': updated_count,
+            'message': f'Updated {updated_count} expired featured periods'
+        })

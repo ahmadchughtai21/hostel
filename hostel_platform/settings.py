@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'hostels',
     'crispy_forms',
+    'crispy_tailwind',  # Crispy Tailwind integration
     'tailwind',  # Tailwind theme app
 ]
 

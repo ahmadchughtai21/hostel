@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Report {{ hostel.name }} - Hostelza{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Breadcrumb -->
+    <nav class="flex mb-6" aria-label="Breadcrumb">
+        <ol class="flex items-center space-x-4">
+            <li>
+                <a href="{% url 'hostels:home' %}" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-home"></i>
+                </a>
+            </li>
+            <li>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </li>
+            <li>
+                <a href="{{ hostel.get_absolute_url }}" class="text-gray-400 hover:text-gray-600">{{ hostel.name }}</a>
+            </li>
+            <li>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+            </li>
+            <li class="text-gray-900">Report Hostel</li>
+        </ol>
+    </nav>
+
+    <div class="bg-white rounded-lg shadow-md p-8">
+        <div class="text-center mb-8">
+            <div class="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-flag text-2xl text-red-600"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-900 mb-2">Report Hostel</h1>
+            <p class="text-gray-600">Help us maintain quality by reporting inappropriate or fake content</p>
+        </div>
+
+        <!-- Hostel Info -->
+        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+            <h3 class="font-semibold text-gray-900 mb-2">You are reporting:</h3>
+            <div class="flex items-center">
+                {% if hostel.images.first %}
+                    <img src="{{ hostel.images.first.image.url }}" alt="{{ hostel.name }}" class="w-16 h-16 object-cover rounded-lg mr-4">
+                {% else %}
+                    <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center mr-4">
+                        <i class="fas fa-home text-gray-400"></i>
+                    </div>
+                {% endif %}
+                <div>
+                    <h4 class="font-semibold text-gray-900">{{ hostel.name }}</h4>
+                    <p class="text-gray-600 text-sm">{{ hostel.address|truncatewords:10 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Form -->
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            <div>
+                <label for="id_report_type" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-exclamation-triangle text-red-500 mr-1"></i>Reason for Report
+                </label>
+                <select name="report_type" id="id_report_type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" required>
+                    <option value="">Select a reason...</option>
+                    <option value="fake">Fake Information - False details, non-existent hostel</option>
+                    <option value="inappropriate">Inappropriate Content - Offensive images or description</option>
+                    <option value="spam">Spam - Duplicate or promotional content</option>
+                    <option value="other">Other - Please describe below</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="id_description" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-comment-alt text-red-500 mr-1"></i>Description
+                </label>
+                <textarea
+                    name="description"
+                    id="id_description"
+                    rows="5"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    placeholder="Please provide specific details about the issue. This will help us review your report more effectively."
+                    required
+                ></textarea>
+                <p class="text-sm text-gray-500 mt-1">Minimum 20 characters required</p>
+            </div>
+
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div class="flex">
+                    <i class="fas fa-info-circle text-yellow-600 mt-0.5 mr-2"></i>
+                    <div class="text-sm text-yellow-800">
+                        <p class="font-medium mb-1">Before submitting:</p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>Ensure your report is accurate and specific</li>
+                            <li>False reports may result in account restrictions</li>
+                            <li>We'll review your report within 24-48 hours</li>
+                            <li>You'll be notified of any action taken</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-between pt-4">
+                <a href="{{ hostel.get_absolute_url }}"
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Hostel
+                </a>
+                <button type="submit"
+                        class="inline-flex items-center px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                    <i class="fas fa-flag mr-2"></i>Submit Report
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const descriptionField = document.getElementById('id_description');
+    const submitButton = document.querySelector('button[type="submit"]');
+
+    descriptionField.addEventListener('input', function() {
+        const length = this.value.length;
+        if (length < 20) {
+            submitButton.disabled = true;
+            submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+        } else {
+            submitButton.disabled = false;
+            submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+    });
+});
+</script>
+{% endblock %}

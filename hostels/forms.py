@@ -5,7 +5,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Row, Column, Field
 from crispy_forms.bootstrap import FormActions
 
-from .models import Hostel, RoomType, HostelImage, Review, Report, Item, Category, Facility, HostelFacility
+from .models import Hostel, RoomType, HostelImage, Review, Report, Item, Category, Facility, HostelFacility, FeaturedPlan, FeaturedRequest
 
 User = get_user_model()
 
@@ -93,7 +93,7 @@ class HostelForm(forms.ModelForm):
         model = Hostel
         fields = (
             'name', 'address', 'google_location_link', 'nearby_landmark',
-            'landmark_distance', 'description', 'contact_email',
+            'landmark_distance', 'description', 'gender_type', 'contact_email',
             'contact_phone', 'whatsapp_number'
         )
         widgets = {
@@ -136,6 +136,9 @@ class HostelForm(forms.ModelForm):
                 'placeholder': '0.5',
                 'step': '0.1',
                 'min': '0'
+            }),
+            'gender_type': forms.Select(attrs={
+                'class': 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500'
             }),
         }
 
@@ -380,6 +383,11 @@ class HostelSearchForm(forms.Form):
         choices=[('', 'Any Room Type')] + RoomType.ROOM_TYPE_CHOICES,
         required=False
     )
+    gender_type = forms.ChoiceField(
+        choices=[('', 'Any Gender')] + Hostel.GENDER_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
     facilities = forms.ModelMultipleChoiceField(
         queryset=None,  # Will be set in __init__
         required=False,
@@ -542,3 +550,153 @@ RoomTypeFormSet = forms.inlineformset_factory(
     min_num=0,  # Make all forms optional
     validate_min=False
 )
+
+
+class FeaturedRequestForm(forms.ModelForm):
+    """Form for hostel owners to request featured ads"""
+
+    class Meta:
+        model = FeaturedRequest
+        fields = [
+            'plan', 'contact_name', 'contact_phone', 'contact_email',
+            'whatsapp_number', 'payment_method', 'payment_reference',
+            'payment_screenshot'
+        ]
+        widgets = {
+            'contact_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Your full name'
+            }),
+            'contact_phone': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '+92 300 1234567'
+            }),
+            'contact_email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'your.email@example.com'
+            }),
+            'whatsapp_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '+92 300 1234567 (optional)'
+            }),
+            'payment_method': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Bank transfer, JazzCash, EasyPaisa, etc.'
+            }),
+            'payment_reference': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Transaction ID or reference number'
+            }),
+            'payment_screenshot': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*,.pdf'
+            }),
+            'plan': forms.RadioSelect()
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        self.hostel = kwargs.pop('hostel', None)
+        super().__init__(*args, **kwargs)
+
+        # Filter active plans only
+        self.fields['plan'].queryset = FeaturedPlan.objects.filter(is_active=True)
+
+        # Pre-populate contact info if user provided
+        if self.user:
+            self.fields['contact_name'].initial = self.user.get_full_name() or self.user.username
+            self.fields['contact_email'].initial = self.user.email
+            if hasattr(self.user, 'phone_number'):
+                self.fields['contact_phone'].initial = self.user.phone_number
+            if hasattr(self.user, 'whatsapp_number'):
+                self.fields['whatsapp_number'].initial = self.user.whatsapp_number
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Field('plan', template='hostels/forms/plan_radio_select.html'),
+            Row(
+                Column('contact_name', css_class='form-group col-md-6 mb-0'),
+                Column('contact_email', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'
+            ),
+            Row(
+                Column('contact_phone', css_class='form-group col-md-6 mb-0'),
+                Column('whatsapp_number', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'
+            ),
+            Row(
+                Column('payment_method', css_class='form-group col-md-6 mb-0'),
+                Column('payment_reference', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'
+            ),
+            'payment_screenshot',
+            FormActions(
+                Submit('submit', 'Submit Featured Request', css_class='btn-primary btn-lg')
+            )
+        )
+
+    def clean_payment_screenshot(self):
+        screenshot = self.cleaned_data.get('payment_screenshot')
+        if screenshot:
+            if screenshot.size > 5 * 1024 * 1024:  # 5MB limit
+                raise forms.ValidationError("File size must be under 5MB.")
+        return screenshot
+
+
+class FeaturedPlanForm(forms.ModelForm):
+    """Form for admin to manage featured plans"""
+
+    class Meta:
+        model = FeaturedPlan
+        fields = ['name', 'duration_type', 'duration_days', 'price', 'description', 'is_active']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'duration_type': forms.Select(attrs={'class': 'form-control'}),
+            'duration_days': forms.NumberInput(attrs={'class': 'form-control'}),
+            'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Row(
+                Column('name', css_class='form-group col-md-6 mb-0'),
+                Column('duration_type', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'
+            ),
+            Row(
+                Column('duration_days', css_class='form-group col-md-6 mb-0'),
+                Column('price', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'
+            ),
+            'description',
+            'is_active',
+            FormActions(
+                Submit('submit', 'Save Plan', css_class='btn-primary')
+            )
+        )
+
+
+class FeaturedRequestReviewForm(forms.ModelForm):
+    """Form for admin to review and approve/reject featured requests"""
+
+    class Meta:
+        model = FeaturedRequest
+        fields = ['status', 'admin_notes']
+        widgets = {
+            'status': forms.Select(attrs={'class': 'form-control'}),
+            'admin_notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 4})
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            'status',
+            'admin_notes',
+            FormActions(
+                Submit('submit', 'Update Request', css_class='btn-primary')
+            )
+        )

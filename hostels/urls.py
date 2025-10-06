@@ -62,6 +62,11 @@ urlpatterns = [
     path('reviews/<int:review_id>/edit/', views.UpdateReviewView.as_view(), name='update_review'),
     path('reviews/<int:review_id>/delete/', views.DeleteReviewView.as_view(), name='delete_review'),
 
+    # Report system
+    path('report/<slug:slug>/', views.ReportHostelView.as_view(), name='report_hostel'),
+    path('api/resolve-report/<int:report_id>/', views.ResolveReportView.as_view(), name='resolve_report'),
+    path('api/delete-report/<int:report_id>/', views.DeleteReportView.as_view(), name='delete_report'),
+
     # Admin features
     path('admin-dashboard/', views.AdminDashboardView.as_view(), name='admin_dashboard'),
     path('admin-dashboard/hostels/', views.AdminHostelListView.as_view(), name='admin_hostels'),
@@ -71,6 +76,14 @@ urlpatterns = [
     path('admin-dashboard/analytics/', views.AdminAnalyticsView.as_view(), name='admin_analytics'),
     path('admin-dashboard/reports/', views.ReportsView.as_view(), name='reports'),
     path('admin-dashboard/export/', admin_views.ExportDataView.as_view(), name='export_data'),
+
+    # Featured ads system
+    path('featured/request/<slug:slug>/', views.FeaturedRequestView.as_view(), name='request_featured'),
+    path('admin-dashboard/featured/requests/', views.FeaturedRequestListView.as_view(), name='admin_featured_requests'),
+    path('admin-dashboard/featured/request/<int:pk>/', views.FeaturedRequestDetailView.as_view(), name='admin_featured_request_detail'),
+    path('admin-dashboard/featured/plans/', views.FeaturedPlansManageView.as_view(), name='admin_featured_plans'),
+    path('admin-dashboard/featured/plans/create/', views.FeaturedPlanCreateView.as_view(), name='create_featured_plan'),
+    path('admin-dashboard/featured/plans/<int:pk>/edit/', views.FeaturedPlanUpdateView.as_view(), name='edit_featured_plan'),
 
     # Notifications
     # path('notifications/', views.NotificationListView.as_view(), name='notifications'),
@@ -119,5 +132,11 @@ urlpatterns = [
     path('api/admin/delete-review/<int:review_id>/',
          admin_views.DeleteReviewAdminView.as_view(),
          name='delete_review_admin'),
+
+    # Featured ads API endpoints
+    path('api/admin/approve-featured/<int:pk>/', views.FeaturedRequestApproveView.as_view(), name='approve_featured_request'),
+    path('api/admin/reject-featured/<int:pk>/', views.FeaturedRequestRejectView.as_view(), name='reject_featured_request'),
+    path('api/check-featured-status/', views.CheckFeaturedStatusView.as_view(), name='check_featured_status'),
+
     # path('api/', include('hostels.api_urls')),  # DRF API urls
 ]
