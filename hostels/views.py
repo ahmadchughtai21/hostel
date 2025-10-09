@@ -270,25 +270,28 @@ class RevealContactView(View):
     """AJAX view to reveal contact information and track it"""
 
     def post(self, request, slug):
-        # Check for AJAX request (modern browsers may not have is_ajax method)
-        if not (request.headers.get('X-Requested-With') == 'XMLHttpRequest' or
-                request.content_type == 'application/json'):
-            return JsonResponse({'error': 'Invalid request'}, status=400)
+        # Allow both AJAX and regular requests
+        try:
+            hostel = get_object_or_404(Hostel, slug=slug, is_active=True)
 
-        hostel = get_object_or_404(Hostel, slug=slug, is_active=True)
+            # Track the contact reveal
+            ContactReveal.objects.create(
+                hostel=hostel,
+                user=request.user if request.user.is_authenticated else None,
+                ip_address=self.get_client_ip(request)
+            )
 
-        # Track the contact reveal
-        ContactReveal.objects.create(
-            hostel=hostel,
-            user=request.user if request.user.is_authenticated else None,
-            ip_address=self.get_client_ip(request)
-        )
-
-        return JsonResponse({
-            'contact_email': hostel.contact_email,
-            'contact_phone': hostel.contact_phone,
-            'whatsapp_number': hostel.whatsapp_number,
-        })
+            return JsonResponse({
+                'success': True,
+                'contact_email': hostel.contact_email,
+                'contact_phone': hostel.contact_phone,
+                'whatsapp_number': hostel.whatsapp_number,
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': 'Failed to load contact information'
+            }, status=500)
 
     def get_client_ip(self, request):
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')

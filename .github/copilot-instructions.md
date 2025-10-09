@@ -1,4 +1,4 @@
-# HostelHub Project - Development Guidelines
+# HOSTELZA Project - Development Guidelines
 
 ## Project Overview
 Full-stack Django hostel listing and discovery platform with the following features:

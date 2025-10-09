@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}My Favorites - HostelHub{% endblock %}
+{% block title %}My Favorites - HOSTELZA{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -218,8 +218,8 @@
     function shareList() {
         if (navigator.share) {
             navigator.share({
-                title: 'My Favorite Hostels - HostelHub',
-                text: 'Check out my favorite hostels on HostelHub',
+                title: 'My Favorite Hostels - HOSTELZA',
+                text: 'Check out my favorite hostels on HOSTELZA',
                 url: window.location.href
             }).catch(console.error);
         } else {

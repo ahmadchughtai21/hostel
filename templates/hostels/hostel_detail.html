@@ -1,8 +1,13 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ hostel.name }} - HostelHub{% endblock %}
+{% block title %}{{ hostel.name }} - HOSTELZA{% endblock %}
 
 {% block content %}
+<!-- Hidden CSRF token for AJAX requests -->
+<form style="display:none;">
+    {% csrf_token %}
+</form>
+
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Breadcrumb -->
     <nav class="flex mb-6" aria-label="Breadcrumb">
@@ -619,6 +624,80 @@
             alert('Please login to report this hostel');
             window.location.href = "{% url 'hostels:login' %}?next={% url 'hostels:report_hostel' hostel.slug %}";
         {% endif %}
+    }
+
+    function showContact(hostelSlug) {
+        const button = event.target;
+        const originalText = button.innerHTML;
+
+        // Show loading state
+        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Loading...';
+        button.disabled = true;
+
+        // Get CSRF token
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch(`/hostels/${hostelSlug}/contact/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Create contact info display
+            const contactHtml = `
+                <div class="space-y-3 mt-4 p-4 bg-gray-50 rounded-lg">
+                    <h4 class="font-semibold text-gray-900 mb-3">Contact Information</h4>
+                    ${data.contact_phone ? `
+                        <div class="flex items-center text-gray-700">
+                            <i class="fas fa-phone text-green-600 mr-3"></i>
+                            <a href="tel:${data.contact_phone}" class="hover:text-green-600 transition-colors">
+                                ${data.contact_phone}
+                            </a>
+                        </div>
+                    ` : ''}
+                    ${data.contact_email ? `
+                        <div class="flex items-center text-gray-700">
+                            <i class="fas fa-envelope text-blue-600 mr-3"></i>
+                            <a href="mailto:${data.contact_email}" class="hover:text-blue-600 transition-colors">
+                                ${data.contact_email}
+                            </a>
+                        </div>
+                    ` : ''}
+                    ${data.whatsapp_number ? `
+                        <div class="flex items-center text-gray-700">
+                            <i class="fab fa-whatsapp text-green-500 mr-3"></i>
+                            <a href="https://wa.me/${data.whatsapp_number}" target="_blank" class="hover:text-green-500 transition-colors">
+                                WhatsApp: ${data.whatsapp_number}
+                            </a>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
+            // Replace button with contact info
+            const contactContainer = button.parentElement;
+            contactContainer.innerHTML = contactHtml;
+
+            showMessage('Contact information revealed successfully!', 'success');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showMessage('Failed to load contact information. Please try again.', 'error');
+
+            // Reset button state
+            button.innerHTML = originalText;
+            button.disabled = false;
+        });
     }
 
     function showAllImages() {

@@ -1,4 +1,4 @@
-# HostelHub - Hostel Listing & Discovery Platform
+# HOSTELZA - Hostel Listing & Discovery Platform
 
 A full-stack Django web application for hostel listing and discovery, connecting students with verified hostel owners.
 
