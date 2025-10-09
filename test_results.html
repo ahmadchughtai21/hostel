@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View Tracking Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; }
+        .result { padding: 10px; margin: 10px 0; background: #f0f0f0; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>HOSTELZA View Tracking System Test</h1>
+
+    <div class="test-section">
+        <h2>✅ Implementation Completed</h2>
+        <div class="result success">
+            <h3>What was implemented:</h3>
+            <ul>
+                <li><strong>HostelView Model:</strong> Tracks every hostel page view with IP address, user, timestamp, and user agent</li>
+                <li><strong>View Analytics:</strong> Owner dashboard now shows total views with time filters (7 days, 30 days, 3 months, 1 year, all time)</li>
+                <li><strong>Per-Hostel Analytics:</strong> Individual view counts and contact reveals for each hostel</li>
+                <li><strong>Privacy Protection:</strong> Hostel owners don't track their own views</li>
+                <li><strong>Time Filtering:</strong> Dashboard allows filtering analytics by different time periods</li>
+                <li><strong>Admin Interface:</strong> HostelView records are manageable through Django admin</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Sample Analytics Data</h2>
+        <div class="result">
+            <p>Created test data for 3 sample hostels:</p>
+            <ul>
+                <li><strong>UMT Student Residence:</strong> 34 views, 2 contact reveals</li>
+                <li><strong>PC Hotel Student Lodge:</strong> 25 views, 2 contact reveals</li>
+                <li><strong>LGS Campus Hostel:</strong> 42 views, 3 contact reveals</li>
+            </ul>
+            <p><strong>Total across all hostels:</strong> 101 views, 7 contact reveals</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🎯 How to Test the Owner Dashboard</h2>
+        <div class="result">
+            <ol>
+                <li>Visit: <a href="http://localhost:8000/accounts/login/" target="_blank">http://localhost:8000/accounts/login/</a></li>
+                <li>Login with: <strong>username:</strong> owner1, <strong>password:</strong> test123</li>
+                <li>Visit owner dashboard: <a href="http://localhost:8000/owner/dashboard/" target="_blank">http://localhost:8000/owner/dashboard/</a></li>
+                <li>Try different time filters: 7 days, 30 days, 3 months, 1 year, All time</li>
+                <li>Observe analytics for individual hostels in the table</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📋 Features Summary</h2>
+        <div class="result">
+            <h3>✅ Completed Features:</h3>
+            <ul>
+                <li>Automatic view tracking on hostel detail pages</li>
+                <li>Owner dashboard with view analytics</li>
+                <li>Time-filtered analytics (7d, 30d, 3m, 1y, all time)</li>
+                <li>Per-hostel view and contact reveal counts</li>
+                <li>Privacy: owners don't track their own views</li>
+                <li>Admin interface for managing view records</li>
+                <li>Database migration and model setup</li>
+            </ul>
+
+            <h3>🔒 Privacy & Security:</h3>
+            <ul>
+                <li>Views are NOT displayed on public hostel pages</li>
+                <li>Only hostel owners can see their own analytics</li>
+                <li>IP addresses are stored for analytics but not shown to owners</li>
+                <li>Anonymous users can view hostels without registration</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 Technical Implementation</h2>
+        <div class="result">
+            <h3>Models:</h3>
+            <ul>
+                <li><code>HostelView</code> - Tracks hostel page views</li>
+                <li>Added <code>views_count</code> property to Hostel model</li>
+            </ul>
+
+            <h3>Views:</h3>
+            <ul>
+                <li>Updated <code>HostelDetailView</code> to record views</li>
+                <li>Enhanced <code>OwnerDashboardView</code> with analytics and time filters</li>
+            </ul>
+
+            <h3>Templates:</h3>
+            <ul>
+                <li>Updated owner dashboard with analytics cards and time filter dropdown</li>
+                <li>Added views column to hostel table</li>
+            </ul>
+
+            <h3>Admin:</h3>
+            <ul>
+                <li>Added <code>HostelViewAdmin</code> for managing view records</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

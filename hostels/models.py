@@ -95,6 +95,11 @@ class Hostel(models.Model):
         return self.contact_reveals.count()
 
     @property
+    def views_count(self):
+        """Count how many times hostel was viewed"""
+        return self.views.count()
+
+    @property
     def current_featured_request(self):
         """Get current active featured request if any"""
         from django.utils import timezone
@@ -237,6 +242,23 @@ class ContactReveal(models.Model):
 
     def __str__(self):
         return f"{self.hostel.name} - Contact revealed at {self.timestamp}"
+
+
+class HostelView(models.Model):
+    """Track hostel page views"""
+    hostel = models.ForeignKey(Hostel, on_delete=models.CASCADE, related_name='views')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    ip_address = models.GenericIPAddressField()
+    user_agent = models.TextField(blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Hostel View"
+        verbose_name_plural = "Hostel Views"
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"{self.hostel.name} - Viewed at {self.timestamp}"
 
 
 class Favorite(models.Model):

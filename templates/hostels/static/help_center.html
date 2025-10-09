@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}Help Center - HOSTELZA{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">Help Center</h1>
+        <p class="text-xl text-gray-600">Find answers to common questions and get help with your HOSTELZA experience</p>
+    </div>
+
+    <!-- Search Box -->
+    <div class="max-w-2xl mx-auto mb-12">
+        <div class="relative">
+            <input
+                type="text"
+                placeholder="Search for help topics..."
+                class="w-full pl-12 pr-6 py-4 text-gray-900 bg-white rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-lg"
+                id="help-search"
+            >
+            <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+        </div>
+    </div>
+
+    <!-- FAQ Sections -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- For Students -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-2xl font-semibold text-indigo-600 mb-6 flex items-center">
+                <i class="fas fa-graduation-cap mr-3"></i>For Students
+            </h2>
+
+            <div class="space-y-4">
+                <div class="border-b border-gray-200 pb-4">
+                    <h3 class="font-semibold text-gray-900 mb-2">How do I search for hostels?</h3>
+                    <p class="text-gray-600">Use our search bar on the homepage to find hostels by location, university name, or hostel name. You can also browse all hostels and use filters to narrow down your search.</p>
+                </div>
+
+                <div class="border-b border-gray-200 pb-4">
+                    <h3 class="font-semibold text-gray-900 mb-2">How do I contact a hostel owner?</h3>
+                    <p class="text-gray-600">Visit the hostel's detail page and click the "Show Contact" button. You'll see the phone number, WhatsApp, and email information to get in touch directly with the owner.</p>
+                </div>
+
+                <div class="border-b border-gray-200 pb-4">
+                    <h3 class="font-semibold text-gray-900 mb-2">Are all hostels verified?</h3>
+                    <p class="text-gray-600">We verify hostels through our admin team. Look for the "Verified" badge on hostel listings to ensure they meet our quality standards.</p>
+                </div>
+
+                <div class="border-b border-gray-200 pb-4">
+                    <h3 class="font-semibold text-gray-900 mb-2">Can I save hostels for later?</h3>
+                    <p class="text-gray-600">Yes! Create an account and use the heart icon on any hostel to add it to your favorites. Access your saved hostels from your profile.</p>
+                </div>
+
+                <div class="pb-4">
+                    <h3 class="font-semibold text-gray-900 mb-2">How do I report inappropriate content?</h3>
+                    <p class="text-gray-600">Use the "Report" button on any hostel page if you find incorrect information, inappropriate content, or have safety concerns.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- For Owners -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-2xl font-semibold text-green-600 mb-6 flex items-center">
+                <i class="fas fa-home mr-3"></i>For Hostel Owners
+            </h2>
+
+            <div class="space-y-4">
+                <div class="border-b border-gray-200 pb-4">
+                    <h3 class="font-semibold text-gray-900 mb-2">How do I list my hostel?</h3>
+                    <p class="text-gray-600">Create an account as a "Hostel Owner", then access your dashboard to add a new hostel listing. Fill in all details, add photos, and submit for verification.</p>
+                </div>
+
+                <div class="border-b border-gray-200 pb-4">
+                    <h3 class="font-semibold text-gray-900 mb-2">How long does verification take?</h3>
+                    <p class="text-gray-600">Our team reviews new listings within 24-48 hours. You'll be notified via email once your hostel is approved and live on HOSTELZA.</p>
+                </div>
+
+                <div class="border-b border-gray-200 pb-4">
+                    <h3 class="font-semibold text-gray-900 mb-2">Can I track views and inquiries?</h3>
+                    <p class="text-gray-600">Yes! Your owner dashboard shows detailed analytics including page views, contact reveals, and performance over different time periods.</p>
+                </div>
+
+                <div class="border-b border-gray-200 pb-4">
+                    <h3 class="font-semibold text-gray-900 mb-2">What are featured ads?</h3>
+                    <p class="text-gray-600">Featured ads boost your hostel's visibility by showing it at the top of search results. Contact our admin team for featured advertising options.</p>
+                </div>
+
+                <div class="pb-4">
+                    <h3 class="font-semibold text-gray-900 mb-2">How do I update my listing?</h3>
+                    <p class="text-gray-600">Access your owner dashboard, find your hostel, and click "Edit" to update information, photos, room types, and facilities anytime.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Support Cards -->
+    <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="text-center bg-blue-50 rounded-lg p-6">
+            <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-envelope text-2xl text-blue-600"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Email Support</h3>
+            <p class="text-gray-600 mb-4">Get help via email within 24 hours</p>
+            <a href="{% url 'hostels:contact_us' %}" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                Contact Us
+            </a>
+        </div>
+
+        <div class="text-center bg-green-50 rounded-lg p-6">
+            <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fab fa-whatsapp text-2xl text-green-600"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">WhatsApp Support</h3>
+            <p class="text-gray-600 mb-4">Quick responses via WhatsApp</p>
+            <a href="https://wa.me/1234567890" target="_blank" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                Message Us
+            </a>
+        </div>
+
+        <div class="text-center bg-purple-50 rounded-lg p-6">
+            <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-comments text-2xl text-purple-600"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Live Chat</h3>
+            <p class="text-gray-600 mb-4">Chat with our support team</p>
+            <button class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                Start Chat
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('help-search').addEventListener('input', function(e) {
+    const query = e.target.value.toLowerCase();
+    const sections = document.querySelectorAll('.space-y-4 > div');
+
+    sections.forEach(section => {
+        const title = section.querySelector('h3').textContent.toLowerCase();
+        const content = section.querySelector('p').textContent.toLowerCase();
+
+        if (title.includes(query) || content.includes(query)) {
+            section.style.display = 'block';
+        } else {
+            section.style.display = query ? 'none' : 'block';
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block title %}Reviews & Ratings - HOSTELZA{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">Reviews & Ratings</h1>
+        <p class="text-xl text-gray-600">See what students are saying about hostels on HOSTELZA</p>
+    </div>
+
+    <!-- Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+        <div class="bg-white rounded-lg shadow-md p-6 text-center">
+            <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-comment text-2xl text-blue-600"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900">{{ total_reviews }}</h3>
+            <p class="text-gray-600">Total Reviews</p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6 text-center">
+            <div class="bg-yellow-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-star text-2xl text-yellow-600"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900">{{ average_rating|floatformat:1 }}</h3>
+            <p class="text-gray-600">Average Rating</p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6 text-center">
+            <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-thumbs-up text-2xl text-green-600"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900">{{ rating_distribution.5|add:rating_distribution.4 }}</h3>
+            <p class="text-gray-600">Positive Reviews</p>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md p-6 text-center">
+            <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-home text-2xl text-purple-600"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900">{{ reviews|length|default:"0" }}</h3>
+            <p class="text-gray-600">This Page</p>
+        </div>
+    </div>
+
+    <!-- Rating Distribution -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-xl font-semibold text-gray-900 mb-6">Rating Distribution</h2>
+        <div class="space-y-3">
+            {% for rating_item in rating_data %}
+            <div class="flex items-center">
+                <div class="flex items-center w-20">
+                    <span class="text-sm font-medium text-gray-900">{{ rating_item.rating }}</span>
+                    <i class="fas fa-star text-yellow-400 ml-1"></i>
+                </div>
+                <div class="flex-1 mx-4">
+                    <div class="bg-gray-200 rounded-full h-2">
+                        {% if total_reviews > 0 %}
+                        <div
+                            class="bg-yellow-400 h-2 rounded-full"
+                            style="width: {{ rating_item.percentage }}%"
+                        ></div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="w-12 text-right">
+                    <span class="text-sm text-gray-600">{{ rating_item.count }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Reviews List -->
+    <div class="space-y-6">
+        {% for review in reviews %}
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center">
+                    <div class="bg-indigo-100 w-12 h-12 rounded-full flex items-center justify-center mr-4">
+                        {% if review.user.profile_picture %}
+                            <img src="{{ review.user.profile_picture.url }}" alt="{{ review.user.username }}" class="w-12 h-12 rounded-full object-cover">
+                        {% else %}
+                            <i class="fas fa-user text-indigo-600"></i>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900">{{ review.user.get_full_name|default:review.user.username }}</h3>
+                        <p class="text-sm text-gray-600">{{ review.created_at|date:"M j, Y" }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= review.rating %}
+                            <i class="fas fa-star text-yellow-400"></i>
+                        {% else %}
+                            <i class="far fa-star text-gray-300"></i>
+                        {% endif %}
+                    {% endfor %}
+                    <span class="ml-2 text-sm font-medium text-gray-900">{{ review.rating }}.0</span>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <a href="{{ review.hostel.get_absolute_url }}" class="text-indigo-600 hover:text-indigo-800 font-medium">
+                    {{ review.hostel.name }}
+                </a>
+                <p class="text-sm text-gray-600">{{ review.hostel.address|truncatewords:10 }}</p>
+            </div>
+
+            <p class="text-gray-700 leading-relaxed">{{ review.review_text }}</p>
+
+            {% if review.hostel.images.first %}
+            <div class="mt-4">
+                <img
+                    src="{{ review.hostel.images.first.image.url }}"
+                    alt="{{ review.hostel.name }}"
+                    class="w-24 h-24 rounded-lg object-cover"
+                >
+            </div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="text-center py-12">
+            <div class="bg-gray-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-comment-slash text-4xl text-gray-400"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">No Reviews Yet</h3>
+            <p class="text-gray-600 mb-6">Be the first to leave a review for a hostel!</p>
+            <a
+                href="{% url 'hostels:hostel_list' %}"
+                class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors inline-flex items-center"
+            >
+                <i class="fas fa-search mr-2"></i>Browse Hostels
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="mt-12 flex justify-center">
+        <div class="flex space-x-2">
+            {% if page_obj.has_previous %}
+                <a href="?page=1" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50">
+                    First
+                </a>
+                <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50">
+                    Previous
+                </a>
+            {% endif %}
+
+            <span class="px-3 py-2 text-sm font-medium text-gray-700 bg-indigo-50 border border-indigo-300">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50">
+                    Next
+                </a>
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50">
+                    Last
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Call to Action -->
+    <div class="mt-12 text-center bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg p-8 text-white">
+        <h2 class="text-2xl font-semibold mb-4">Share Your Experience</h2>
+        <p class="text-indigo-100 mb-6">Help other students by reviewing the hostels you've stayed at</p>
+        <a
+            href="{% url 'hostels:hostel_list' %}"
+            class="bg-white text-indigo-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-flex items-center"
+        >
+            <i class="fas fa-star mr-2"></i>Leave a Review
+        </a>
+    </div>
+</div>
+{% endblock %}

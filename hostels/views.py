@@ -222,7 +222,30 @@ class HostelDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         from django.db.models import Min, Max
+        from .models import HostelView
+
         context = super().get_context_data(**kwargs)
+
+        # Track the hostel view (but don't track owner's own views)
+        if not (self.request.user.is_authenticated and self.request.user == self.object.owner):
+            # Get client IP address
+            x_forwarded_for = self.request.META.get('HTTP_X_FORWARDED_FOR')
+            if x_forwarded_for:
+                ip_address = x_forwarded_for.split(',')[0].strip()
+            else:
+                ip_address = self.request.META.get('REMOTE_ADDR', '127.0.0.1')
+
+            # Get user agent
+            user_agent = self.request.META.get('HTTP_USER_AGENT', '')
+
+            # Create view record
+            HostelView.objects.create(
+                hostel=self.object,
+                user=self.request.user if self.request.user.is_authenticated else None,
+                ip_address=ip_address,
+                user_agent=user_agent
+            )
+
         room_types = self.object.room_types.all().order_by('price')
         context['room_types'] = room_types
         context['facilities'] = self.object.hostel_facilities.all()
@@ -345,13 +368,66 @@ class OwnerDashboardView(OwnerRequiredMixin, TemplateView):
     template_name = 'hostels/owner/dashboard.html'
 
     def get_context_data(self, **kwargs):
+        from django.utils import timezone
+        from django.db.models import Count, Q
+        from datetime import timedelta
+
         context = super().get_context_data(**kwargs)
         user_hostels = self.request.user.hostels.all()
 
+        # Get time filter from request
+        time_filter = self.request.GET.get('time_filter', '30')  # Default to 30 days
+
+        # Calculate date range
+        now = timezone.now()
+        if time_filter == '7':
+            start_date = now - timedelta(days=7)
+            period_name = "Last 7 Days"
+        elif time_filter == '30':
+            start_date = now - timedelta(days=30)
+            period_name = "Last 30 Days"
+        elif time_filter == '90':
+            start_date = now - timedelta(days=90)
+            period_name = "Last 3 Months"
+        elif time_filter == '365':
+            start_date = now - timedelta(days=365)
+            period_name = "Last Year"
+        else:  # all time
+            start_date = None
+            period_name = "All Time"
+
+        # Basic stats
         context['hostels'] = user_hostels
         context['total_hostels'] = user_hostels.count()
         context['verified_hostels'] = user_hostels.filter(is_verified=True).count()
-        context['total_contact_reveals'] = sum(h.contact_reveals_count for h in user_hostels)
+
+        # Time-filtered analytics
+        if start_date:
+            context['total_views'] = sum(h.views.filter(timestamp__gte=start_date).count() for h in user_hostels)
+            context['total_contact_reveals'] = sum(h.contact_reveals.filter(timestamp__gte=start_date).count() for h in user_hostels)
+        else:
+            context['total_views'] = sum(h.views_count for h in user_hostels)
+            context['total_contact_reveals'] = sum(h.contact_reveals_count for h in user_hostels)
+
+        # Add individual hostel analytics
+        hostel_analytics = []
+        for hostel in user_hostels:
+            if start_date:
+                views_count = hostel.views.filter(timestamp__gte=start_date).count()
+                reveals_count = hostel.contact_reveals.filter(timestamp__gte=start_date).count()
+            else:
+                views_count = hostel.views_count
+                reveals_count = hostel.contact_reveals_count
+
+            hostel_analytics.append({
+                'hostel': hostel,
+                'views_count': views_count,
+                'reveals_count': reveals_count,
+            })
+
+        context['hostel_analytics'] = hostel_analytics
+        context['time_filter'] = time_filter
+        context['period_name'] = period_name
 
         return context
 
@@ -1342,3 +1418,97 @@ class CheckFeaturedStatusView(View):
             'updated_count': updated_count,
             'message': f'Updated {updated_count} expired featured periods'
         })
+
+
+# Static Page Views
+class HelpCenterView(TemplateView):
+    """Help Center page"""
+    template_name = 'hostels/static/help_center.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = 'Help Center'
+        return context
+
+
+class ContactUsView(TemplateView):
+    """Contact Us page"""
+    template_name = 'hostels/static/contact_us.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = 'Contact Us'
+        return context
+
+
+class TermsOfServiceView(TemplateView):
+    """Terms of Service page"""
+    template_name = 'hostels/static/terms_of_service.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = 'Terms of Service'
+        return context
+
+
+class SearchByLocationView(TemplateView):
+    """Search hostels by location page"""
+    template_name = 'hostels/static/search_by_location.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = 'Search by Location'
+
+        # Get popular locations based on hostel counts
+        from django.db.models import Count
+        popular_locations = Hostel.objects.filter(is_active=True).values(
+            'address'
+        ).annotate(
+            hostel_count=Count('id')
+        ).order_by('-hostel_count')[:10]
+
+        context['popular_locations'] = popular_locations
+        return context
+
+
+class ReviewsListView(ListView):
+    """Reviews and ratings page"""
+    model = Review
+    template_name = 'hostels/static/reviews_list.html'
+    context_object_name = 'reviews'
+    paginate_by = 20
+
+    def get_queryset(self):
+        return Review.objects.filter(is_approved=True).select_related(
+            'hostel', 'user'
+        ).order_by('-created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_title'] = 'Reviews & Ratings'
+
+        # Get some statistics
+        reviews = self.get_queryset()
+        total_reviews = reviews.count()
+        context['total_reviews'] = total_reviews
+        context['average_rating'] = reviews.aggregate(
+            avg_rating=Avg('rating')
+        )['avg_rating'] or 0
+
+        # Rating distribution with percentages
+        rating_distribution = {}
+        rating_data = []
+        for i in range(5, 0, -1):  # 5 to 1 stars (reverse order for better display)
+            count = reviews.filter(rating=i).count()
+            percentage = (count * 100 / total_reviews) if total_reviews > 0 else 0
+            rating_distribution[i] = count
+            rating_data.append({
+                'rating': i,
+                'count': count,
+                'percentage': round(percentage, 1)
+            })
+
+        context['rating_distribution'] = rating_distribution
+        context['rating_data'] = rating_data
+
+        return context

@@ -46,6 +46,13 @@ urlpatterns = [
     # path('items/<slug:slug>/edit/', views.ItemUpdateView.as_view(), name='item_update'),
     # path('items/<slug:slug>/delete/', views.ItemDeleteView.as_view(), name='item_delete'),
 
+    # Static pages
+    path('help/', views.HelpCenterView.as_view(), name='help_center'),
+    path('contact/', views.ContactUsView.as_view(), name='contact_us'),
+    path('terms/', views.TermsOfServiceView.as_view(), name='terms_of_service'),
+    path('search-location/', views.SearchByLocationView.as_view(), name='search_by_location'),
+    path('reviews/', views.ReviewsListView.as_view(), name='reviews_list'),
+
     # Owner dashboard
     path('owner-dashboard/', views.OwnerDashboardView.as_view(), name='owner_dashboard'),
     path('owner-dashboard/hostel/add/', views.AddHostelView.as_view(), name='add_hostel'),

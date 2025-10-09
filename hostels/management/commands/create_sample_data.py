@@ -37,67 +37,46 @@ class Command(BaseCommand):
                 self.stdout.write(f"Created owner: {username}")
             owners.append(owner)
 
-        # Sample hostel data
+        # Sample hostel data with specific landmarks
         sample_hostels = [
             {
-                'name': 'FAST University Lodge',
-                'address': 'House 123, Block A, Johar Town, Near FAST-NUCES Lahore Campus',
-                'description': 'Modern hostel facility specifically designed for FAST University students. Features include high-speed Wi-Fi, study halls, air-conditioned rooms, and 24/7 security. Just 5 minutes walk to campus.',
-                'contact_email': 'info@fastlodge.pk',
+                'name': 'PC Hotel Student Lodge',
+                'address': 'House 25, Shah Jamal Road, Near Pearl Continental Hotel, Lahore',
+                'description': 'Premium student accommodation located near the famous Pearl Continental Hotel in the heart of Lahore. Features include modern furnished rooms, high-speed Wi-Fi, 24/7 security, AC rooms, and easy access to shopping malls and restaurants. Perfect for students who prefer city center location.',
+                'contact_email': 'info@pcstudentlodge.pk',
                 'contact_phone': '+923001234567',
                 'whatsapp_number': '+923001234567',
-                'google_location_link': 'https://maps.google.com/maps?q=31.4697,-74.2728',
-                'nearby_landmark': 'FAST-NUCES Lahore',
-                'landmark_distance': Decimal('0.3'),
+                'google_location_link': 'https://maps.google.com/maps?q=31.5497,-74.3436',
+                'nearby_landmark': 'Pearl Continental (PC) Hotel',
+                'landmark_distance': Decimal('0.2'),
+                'gender_type': 'mixed',
                 'is_featured': True,
             },
             {
-                'name': 'LUMS Heights Hostel',
-                'address': '456 DHA Phase 5, Near LUMS University, Lahore Cantt',
-                'description': 'Premium accommodation for LUMS students and faculty. Offers furnished single and shared rooms with modern amenities, common kitchen, gym access, and transport facility to campus.',
-                'contact_email': 'contact@lumsheights.pk',
+                'name': 'LGS Campus Hostel',
+                'address': '123 Main Boulevard, Near Lahore Grammar School, Gulberg, Lahore',
+                'description': 'Comfortable and safe hostel facility near the prestigious Lahore Grammar School. Offers clean rooms, study areas, mess facility with home-cooked meals, and a peaceful environment for studies. Popular among students attending nearby educational institutions.',
+                'contact_email': 'contact@lgscampus.pk',
                 'contact_phone': '+923009876543',
                 'whatsapp_number': '+923009876543',
-                'google_location_link': 'https://maps.google.com/maps?q=31.4939,-74.4119',
-                'nearby_landmark': 'LUMS University',
-                'landmark_distance': Decimal('0.8'),
+                'google_location_link': 'https://maps.google.com/maps?q=31.5080,-74.3436',
+                'nearby_landmark': 'Lahore Grammar School (LGS)',
+                'landmark_distance': Decimal('0.3'),
+                'gender_type': 'male',
                 'is_featured': False,
             },
             {
                 'name': 'UMT Student Residence',
-                'address': '789 C-II Block, C-2 Johar Town, Near UMT Campus',
-                'description': 'Comfortable and affordable accommodation near University of Management & Technology. Clean rooms, mess facility, study areas, and easy access to public transport.',
+                'address': '456 C-II Block, Johar Town, Near University of Management and Technology',
+                'description': 'Modern student accommodation specially designed for UMT students and other university students. Features include spacious rooms, common kitchen, study halls, gym access, high-speed internet, and transport facility. Well-maintained and professionally managed facility.',
                 'contact_email': 'info@umtresidence.pk',
                 'contact_phone': '+923216549873',
                 'whatsapp_number': '+923216549873',
                 'google_location_link': 'https://maps.google.com/maps?q=31.4504,-74.3072',
-                'nearby_landmark': 'UMT Lahore',
-                'landmark_distance': Decimal('0.5'),
-                'is_featured': False,
-            },
-            {
-                'name': 'COMSATS Gateway Hostel',
-                'address': '321 Park Road, Near COMSATS University Lahore Campus',
-                'description': 'State-of-the-art hostel facility for COMSATS students with modern infrastructure, high-speed internet, recreational facilities, and professional management. Safe and secure environment.',
-                'contact_email': 'info@comsatsgateway.pk',
-                'contact_phone': '+923451122334',
-                'whatsapp_number': '+923451122334',
-                'google_location_link': 'https://maps.google.com/maps?q=31.4220,-74.4044',
-                'nearby_landmark': 'COMSATS University Lahore',
+                'nearby_landmark': 'University of Management and Technology (UMT)',
                 'landmark_distance': Decimal('0.4'),
+                'gender_type': 'female',
                 'is_featured': True,
-            },
-            {
-                'name': 'PU Campus Lodge',
-                'address': '654 New Campus Road, University Town, Near Punjab University',
-                'description': 'Budget-friendly accommodation for Punjab University students. Family-run hostel with home-cooked meals, personal attention, and a supportive academic environment.',
-                'contact_email': 'info@pucampus.pk',
-                'contact_phone': '+923334455667',
-                'whatsapp_number': '+923334455667',
-                'google_location_link': 'https://maps.google.com/maps?q=31.5804,-74.3587',
-                'nearby_landmark': 'Punjab University',
-                'landmark_distance': Decimal('0.6'),
-                'is_featured': False,
             }
         ]
 
@@ -118,8 +97,9 @@ class Command(BaseCommand):
                     'google_location_link': hostel_data.get('google_location_link', ''),
                     'nearby_landmark': hostel_data.get('nearby_landmark', ''),
                     'landmark_distance': hostel_data.get('landmark_distance'),
+                    'gender_type': hostel_data.get('gender_type', 'mixed'),
                     'is_featured': hostel_data.get('is_featured', False),
-                    'is_verified': random.choice([True, False]),  # Random verification status
+                    'is_verified': True,  # All demo hostels are verified
                     'latitude': Decimal('31.5204'),  # Lahore coordinates
                     'longitude': Decimal('74.3587'),
                 }
@@ -143,7 +123,7 @@ class Command(BaseCommand):
                         defaults={
                             'price': Decimal(str(room_data['price'])),
                             'available_rooms': room_data['available_rooms'],
-                            'description': f"Comfortable {room_data['type']} accommodation"
+                            'description': f"Comfortable {room_data['type']} room with modern amenities and facilities"
                         }
                     )
 

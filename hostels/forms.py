@@ -12,8 +12,14 @@ User = get_user_model()
 
 class UserRegistrationForm(UserCreationForm):
     """Custom user registration form"""
+    # Define role choices without admin option
+    USER_ROLE_CHOICES = [
+        ('owner', 'Hostel Owner'),
+        ('student', 'Student/Client'),
+    ]
+
     email = forms.EmailField(required=True)
-    role = forms.ChoiceField(choices=User.ROLE_CHOICES, initial='student')
+    role = forms.ChoiceField(choices=USER_ROLE_CHOICES, initial='student')
     phone_number = forms.CharField(max_length=20, required=False)
     whatsapp_number = forms.CharField(max_length=20, required=False)
 

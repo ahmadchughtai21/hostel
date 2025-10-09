@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+
+{% block title %}Search by Location - HOSTELZA{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">Search by Location</h1>
+        <p class="text-xl text-gray-600">Find hostels in your preferred area or near your university</p>
+    </div>
+
+    <!-- Search Form -->
+    <div class="max-w-3xl mx-auto mb-12">
+        <form method="GET" action="{% url 'hostels:hostel_list' %}" class="bg-white rounded-lg shadow-lg p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="md:col-span-2">
+                    <label for="location-search" class="block text-sm font-medium text-gray-700 mb-2">
+                        Enter Location, University, or Area
+                    </label>
+                    <div class="relative">
+                        <input
+                            type="text"
+                            id="location-search"
+                            name="q"
+                            placeholder="e.g., University of Punjab, DHA Lahore, Gulberg..."
+                            class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            value="{{ request.GET.q }}"
+                        >
+                        <i class="fas fa-map-marker-alt absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                </div>
+                <div class="flex items-end">
+                    <button
+                        type="submit"
+                        class="w-full bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-indigo-700 transition-colors duration-300 flex items-center justify-center"
+                    >
+                        <i class="fas fa-search mr-2"></i>Search Hostels
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Popular Cities -->
+    <div class="mb-12">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-6 text-center">Popular Cities</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {% for city in popular_cities %}
+            <a
+                href="{% url 'hostels:hostel_list' %}?q={{ city.name }}"
+                class="bg-white rounded-lg shadow-md p-4 text-center hover:shadow-lg transition-shadow duration-300 group"
+            >
+                <div class="bg-indigo-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-indigo-200 transition-colors">
+                    <i class="fas fa-city text-indigo-600 text-xl"></i>
+                </div>
+                <h3 class="font-semibold text-gray-900">{{ city.name }}</h3>
+                <p class="text-sm text-gray-600">{{ city.hostel_count }} hostels</p>
+            </a>
+            {% empty %}
+            <div class="col-span-full text-center text-gray-600">
+                <p>Popular cities will appear here as more hostels are added.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Universities -->
+    <div class="mb-12">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-6 text-center">Find Hostels Near Universities</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for university in popular_universities %}
+            <a
+                href="{% url 'hostels:hostel_list' %}?q={{ university.name }}"
+                class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300 group"
+            >
+                <div class="flex items-center mb-4">
+                    <div class="bg-green-100 w-12 h-12 rounded-full flex items-center justify-center mr-4 group-hover:bg-green-200 transition-colors">
+                        <i class="fas fa-graduation-cap text-green-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900">{{ university.name }}</h3>
+                        <p class="text-sm text-gray-600">{{ university.location }}</p>
+                    </div>
+                </div>
+                <p class="text-indigo-600 font-medium">
+                    {{ university.hostel_count }} nearby hostels
+                    <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                </p>
+            </a>
+            {% empty %}
+            <!-- Default Universities -->
+            <a
+                href="{% url 'hostels:hostel_list' %}?q=University of Punjab"
+                class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300 group"
+            >
+                <div class="flex items-center mb-4">
+                    <div class="bg-green-100 w-12 h-12 rounded-full flex items-center justify-center mr-4 group-hover:bg-green-200 transition-colors">
+                        <i class="fas fa-graduation-cap text-green-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900">University of Punjab</h3>
+                        <p class="text-sm text-gray-600">Lahore</p>
+                    </div>
+                </div>
+                <p class="text-indigo-600 font-medium">
+                    Find nearby hostels
+                    <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                </p>
+            </a>
+
+            <a
+                href="{% url 'hostels:hostel_list' %}?q=LUMS"
+                class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300 group"
+            >
+                <div class="flex items-center mb-4">
+                    <div class="bg-green-100 w-12 h-12 rounded-full flex items-center justify-center mr-4 group-hover:bg-green-200 transition-colors">
+                        <i class="fas fa-graduation-cap text-green-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900">LUMS</h3>
+                        <p class="text-sm text-gray-600">Lahore</p>
+                    </div>
+                </div>
+                <p class="text-indigo-600 font-medium">
+                    Find nearby hostels
+                    <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                </p>
+            </a>
+
+            <a
+                href="{% url 'hostels:hostel_list' %}?q=UMT"
+                class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300 group"
+            >
+                <div class="flex items-center mb-4">
+                    <div class="bg-green-100 w-12 h-12 rounded-full flex items-center justify-center mr-4 group-hover:bg-green-200 transition-colors">
+                        <i class="fas fa-graduation-cap text-green-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900">UMT</h3>
+                        <p class="text-sm text-gray-600">Lahore</p>
+                    </div>
+                </div>
+                <p class="text-indigo-600 font-medium">
+                    Find nearby hostels
+                    <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                </p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Areas/Neighborhoods -->
+    <div class="mb-12">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-6 text-center">Popular Areas</h2>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {% for area in popular_areas %}
+            <a
+                href="{% url 'hostels:hostel_list' %}?q={{ area.name }}"
+                class="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4 text-center hover:shadow-lg transition-all duration-300 group"
+            >
+                <div class="bg-purple-100 w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2 group-hover:bg-purple-200 transition-colors">
+                    <i class="fas fa-map-pin text-purple-600"></i>
+                </div>
+                <h3 class="font-medium text-gray-900">{{ area.name }}</h3>
+                <p class="text-xs text-gray-600">{{ area.city }}</p>
+            </a>
+            {% empty %}
+            <!-- Default Areas -->
+            <a href="{% url 'hostels:hostel_list' %}?q=DHA Lahore" class="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4 text-center hover:shadow-lg transition-all duration-300 group">
+                <div class="bg-purple-100 w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2 group-hover:bg-purple-200 transition-colors">
+                    <i class="fas fa-map-pin text-purple-600"></i>
+                </div>
+                <h3 class="font-medium text-gray-900">DHA</h3>
+                <p class="text-xs text-gray-600">Lahore</p>
+            </a>
+
+            <a href="{% url 'hostels:hostel_list' %}?q=Gulberg Lahore" class="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4 text-center hover:shadow-lg transition-all duration-300 group">
+                <div class="bg-purple-100 w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2 group-hover:bg-purple-200 transition-colors">
+                    <i class="fas fa-map-pin text-purple-600"></i>
+                </div>
+                <h3 class="font-medium text-gray-900">Gulberg</h3>
+                <p class="text-xs text-gray-600">Lahore</p>
+            </a>
+
+            <a href="{% url 'hostels:hostel_list' %}?q=Johar Town" class="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4 text-center hover:shadow-lg transition-all duration-300 group">
+                <div class="bg-purple-100 w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2 group-hover:bg-purple-200 transition-colors">
+                    <i class="fas fa-map-pin text-purple-600"></i>
+                </div>
+                <h3 class="font-medium text-gray-900">Johar Town</h3>
+                <p class="text-xs text-gray-600">Lahore</p>
+            </a>
+
+            <a href="{% url 'hostels:hostel_list' %}?q=Model Town" class="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4 text-center hover:shadow-lg transition-all duration-300 group">
+                <div class="bg-purple-100 w-10 h-10 rounded-full flex items-center justify-center mx-auto mb-2 group-hover:bg-purple-200 transition-colors">
+                    <i class="fas fa-map-pin text-purple-600"></i>
+                </div>
+                <h3 class="font-medium text-gray-900">Model Town</h3>
+                <p class="text-xs text-gray-600">Lahore</p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="text-center bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg p-8 text-white">
+        <h2 class="text-2xl font-semibold mb-4">Can't find what you're looking for?</h2>
+        <p class="text-indigo-100 mb-6">Browse all hostels or contact us to add your area</p>
+        <div class="space-x-4">
+            <a
+                href="{% url 'hostels:hostel_list' %}"
+                class="bg-white text-indigo-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-flex items-center"
+            >
+                <i class="fas fa-list mr-2"></i>Browse All Hostels
+            </a>
+            <a
+                href="{% url 'hostels:contact_us' %}"
+                class="bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-800 transition-colors inline-flex items-center"
+            >
+                <i class="fas fa-envelope mr-2"></i>Contact Us
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

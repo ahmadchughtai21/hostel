@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import (
     User, Hostel, Facility, HostelFacility, RoomType,
-    HostelImage, ContactReveal, Favorite, Review, Report, HostelSubscription
+    HostelImage, ContactReveal, HostelView, Favorite, Review, Report, HostelSubscription
 )
 
 
@@ -131,6 +131,14 @@ class ContactRevealAdmin(admin.ModelAdmin):
     list_display = ('hostel', 'user', 'ip_address', 'timestamp')
     list_filter = ('timestamp',)
     readonly_fields = ('timestamp',)
+
+
+@admin.register(HostelView)
+class HostelViewAdmin(admin.ModelAdmin):
+    list_display = ('hostel', 'user', 'ip_address', 'timestamp')
+    list_filter = ('timestamp', 'hostel')
+    readonly_fields = ('timestamp',)
+    search_fields = ('hostel__name', 'user__username', 'ip_address')
 
 
 @admin.register(Favorite)

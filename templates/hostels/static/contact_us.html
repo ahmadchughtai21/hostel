@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+
+{% block title %}Contact Us - HOSTELZA{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">Contact Us</h1>
+        <p class="text-xl text-gray-600">Get in touch with our team for support, partnerships, or general inquiries</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <!-- Contact Form -->
+        <div class="bg-white rounded-lg shadow-md p-8">
+            <h2 class="text-2xl font-semibold text-gray-900 mb-6">Send us a Message</h2>
+
+            <form id="contact-form" class="space-y-6">
+                {% csrf_token %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="first_name" class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                        <input
+                            type="text"
+                            id="first_name"
+                            name="first_name"
+                            required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                    </div>
+                    <div>
+                        <label for="last_name" class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                        <input
+                            type="text"
+                            id="last_name"
+                            name="last_name"
+                            required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        >
+                    </div>
+                </div>
+
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                </div>
+
+                <div>
+                    <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                    <select
+                        id="subject"
+                        name="subject"
+                        required
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                        <option value="">Select a subject</option>
+                        <option value="general">General Inquiry</option>
+                        <option value="support">Technical Support</option>
+                        <option value="partnership">Partnership Opportunity</option>
+                        <option value="advertising">Advertising/Featured Ads</option>
+                        <option value="report">Report an Issue</option>
+                        <option value="feedback">Feedback/Suggestions</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="message" class="block text-sm font-medium text-gray-700 mb-2">Message</label>
+                    <textarea
+                        id="message"
+                        name="message"
+                        rows="6"
+                        required
+                        placeholder="Please describe your inquiry in detail..."
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    ></textarea>
+                </div>
+
+                <button
+                    type="submit"
+                    class="w-full bg-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-indigo-700 transition-colors duration-300 flex items-center justify-center"
+                >
+                    <i class="fas fa-paper-plane mr-2"></i>Send Message
+                </button>
+            </form>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="space-y-8">
+            <!-- Contact Cards -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">Get in Touch</h3>
+
+                <div class="space-y-4">
+                    <div class="flex items-center">
+                        <div class="bg-indigo-100 p-3 rounded-full mr-4">
+                            <i class="fas fa-envelope text-indigo-600"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900">Email</p>
+                            <p class="text-gray-600">support@hostelza.com</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center">
+                        <div class="bg-green-100 p-3 rounded-full mr-4">
+                            <i class="fab fa-whatsapp text-green-600"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900">WhatsApp</p>
+                            <p class="text-gray-600">+92 300 1234567</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center">
+                        <div class="bg-blue-100 p-3 rounded-full mr-4">
+                            <i class="fas fa-phone text-blue-600"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900">Phone</p>
+                            <p class="text-gray-600">+92 42 1234567</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center">
+                        <div class="bg-red-100 p-3 rounded-full mr-4">
+                            <i class="fas fa-map-marker-alt text-red-600"></i>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900">Address</p>
+                            <p class="text-gray-600">123 Tech Hub, Lahore, Pakistan</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Business Hours -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">Business Hours</h3>
+
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="font-medium text-gray-900">Monday - Friday</span>
+                        <span class="text-gray-600">9:00 AM - 6:00 PM</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium text-gray-900">Saturday</span>
+                        <span class="text-gray-600">10:00 AM - 4:00 PM</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium text-gray-900">Sunday</span>
+                        <span class="text-gray-600">Closed</span>
+                    </div>
+                </div>
+
+                <div class="mt-4 p-3 bg-yellow-50 rounded-lg">
+                    <p class="text-sm text-yellow-800">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        We typically respond to emails within 24 hours during business days.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Social Media -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4">Follow Us</h3>
+
+                <div class="flex space-x-4">
+                    <a href="#" class="bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 transition-colors">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="bg-blue-400 text-white p-3 rounded-full hover:bg-blue-500 transition-colors">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="#" class="bg-pink-600 text-white p-3 rounded-full hover:bg-pink-700 transition-colors">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="bg-blue-800 text-white p-3 rounded-full hover:bg-blue-900 transition-colors">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('contact-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    // Show success message (in a real app, you'd send this to a backend)
+    const button = this.querySelector('button[type="submit"]');
+    const originalText = button.innerHTML;
+
+    button.innerHTML = '<i class="fas fa-check mr-2"></i>Message Sent!';
+    button.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+    button.classList.add('bg-green-600');
+
+    setTimeout(() => {
+        button.innerHTML = originalText;
+        button.classList.remove('bg-green-600');
+        button.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+        this.reset();
+    }, 3000);
+});
+</script>
+{% endblock %}

@@ -341,24 +341,24 @@
                         <h4 class="font-semibold mb-4">For Students</h4>
                         <ul class="space-y-2 text-gray-300">
                             <li><a href="{% url 'hostels:hostel_list' %}" class="hover:text-indigo-400 transition-colors duration-300"><i class="fas fa-search mr-2"></i>Browse Hostels</a></li>
-                            <li><a href="#" class="hover:text-indigo-400 transition-colors duration-300"><i class="fas fa-map-marker-alt mr-2"></i>Search by Location</a></li>
-                            <li><a href="#" class="hover:text-indigo-400 transition-colors duration-300"><i class="fas fa-star mr-2"></i>Reviews & Ratings</a></li>
+                            <li><a href="{% url 'hostels:search_by_location' %}" class="hover:text-indigo-400 transition-colors duration-300"><i class="fas fa-map-marker-alt mr-2"></i>Search by Location</a></li>
+                            <li><a href="{% url 'hostels:reviews_list' %}" class="hover:text-indigo-400 transition-colors duration-300"><i class="fas fa-star mr-2"></i>Reviews & Ratings</a></li>
                         </ul>
                     </div>
                     <div>
                         <h4 class="font-semibold mb-4">For Owners</h4>
                         <ul class="space-y-2 text-gray-300">
                             <li><a href="{% url 'hostels:register' %}" class="hover:text-green-400 transition-colors duration-300"><i class="fas fa-plus mr-2"></i>List Your Hostel</a></li>
-                            <li><a href="#" class="hover:text-green-400 transition-colors duration-300"><i class="fas fa-cog mr-2"></i>Manage Listings</a></li>
-                            <li><a href="#" class="hover:text-green-400 transition-colors duration-300"><i class="fas fa-chart-line mr-2"></i>Analytics</a></li>
+                            <li><a href="{% url 'hostels:owner_dashboard' %}" class="hover:text-green-400 transition-colors duration-300"><i class="fas fa-cog mr-2"></i>Manage Listings</a></li>
+                            <li><a href="{% url 'hostels:owner_dashboard' %}" class="hover:text-green-400 transition-colors duration-300"><i class="fas fa-chart-line mr-2"></i>Analytics</a></li>
                         </ul>
                     </div>
                     <div>
                         <h4 class="font-semibold mb-4">Support</h4>
                         <ul class="space-y-2 text-gray-300">
-                            <li><a href="#" class="hover:text-yellow-400 transition-colors duration-300"><i class="fas fa-question-circle mr-2"></i>Help Center</a></li>
-                            <li><a href="#" class="hover:text-yellow-400 transition-colors duration-300"><i class="fas fa-envelope mr-2"></i>Contact Us</a></li>
-                            <li><a href="#" class="hover:text-yellow-400 transition-colors duration-300"><i class="fas fa-file-contract mr-2"></i>Terms of Service</a></li>
+                            <li><a href="{% url 'hostels:help_center' %}" class="hover:text-yellow-400 transition-colors duration-300"><i class="fas fa-question-circle mr-2"></i>Help Center</a></li>
+                            <li><a href="{% url 'hostels:contact_us' %}" class="hover:text-yellow-400 transition-colors duration-300"><i class="fas fa-envelope mr-2"></i>Contact Us</a></li>
+                            <li><a href="{% url 'hostels:terms_of_service' %}" class="hover:text-yellow-400 transition-colors duration-300"><i class="fas fa-file-contract mr-2"></i>Terms of Service</a></li>
                         </ul>
                     </div>
                 </div>
