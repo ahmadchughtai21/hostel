@@ -31,6 +31,15 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["www.hostelza.com","hostelza.com","localhost","127.0.0.1"]
 
+# CSRF Trusted Origins (required for Django 4.0+ with HTTPS)
+CSRF_TRUSTED_ORIGINS = [
+    "https://hostelza.com",
+    "https://www.hostelza.com",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://localhost:8001",
+    "http://127.0.0.1:8001",
+]
 
 # Application definition
 
@@ -191,6 +200,17 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+# CSRF Security Settings
+CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_USE_SESSIONS = False
+
+# Session Security Settings
+SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
 
 # Environment variables for secrets/API keys
 GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY', '')
